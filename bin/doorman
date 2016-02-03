@@ -1,0 +1,42 @@
+#! /usr/bin/env ruby
+
+require 'rubygems'
+require 'optparse'
+require 'doorman'
+
+options = {
+  :Port           => 9000,
+  :ServerType     => WEBrick::Daemon,
+}
+
+optparse = OptionParser.new { |opts|
+    opts.banner = "Usage : doorman [-p <port>] [-d]
+
+        Runs the Doorman Puppet code validator.
+
+"
+
+    opts.on("-d", "--debug", "Run in the foreground and display debugging messages") do
+        options[:ServerType] = WEBrick::SimpleServer
+    end
+
+    opts.on("-p PORT", "--port", "Port to run on") do |arg|
+        options[:Port] = arg
+    end
+
+    opts.separator('')
+
+    opts.on("-h", "--help", "Displays this help") do
+        puts opts
+        exit
+    end
+}
+optparse.parse!
+
+if options[:ServerType] == WEBrick::Daemon
+  options[:Logger] = WEBrick::Log::new('/var/log/doorman', WEBrick::Log::WARN)
+end
+
+Rack::Handler::WEBrick.run(Doorman, options) do |server|
+  [:INT, :TERM].each { |sig| trap(sig) { server.stop } }
+end
