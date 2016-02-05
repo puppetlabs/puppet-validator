@@ -12,7 +12,9 @@ class Doorman < Sinatra::Base
   end
 
   post '/validate' do
-    validate params['code']
+    @result = validate params['code']
+    @code   = params['code']
+    erb :result
   end
 
   not_found do
@@ -29,12 +31,12 @@ class Doorman < Sinatra::Base
         validation_environment.check_for_reparse
         validation_environment.known_resource_types.clear
 
-        'Syntax OK'
+        {:status => true, :message => 'Syntax OK'}
       rescue => detail
-        str  = detail.message
-        str << "\n    Line: #{detail.line}" if (detail.methods.include? :line and detail.line)
-        str << "\nPosition: #{detail.pos}"  if (detail.methods.include? :pos  and detail.pos)
-        str
+        err = {:status => false, :message => detail.message}
+        err[:line] = detail.line if detail.methods.include? :line
+        err[:pos]  = detail.pos  if detail.methods.include? :pos
+        err
       end
     end
 

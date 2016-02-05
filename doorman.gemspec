@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.version           = '0.0.1'
   s.date              = Date.today.to_s
   s.summary           = "Puppet code validator as a service"
-  s.homepage          = "http://github.com/binford2k/arnold"
+  s.homepage          = "https://github.com/puppetlabs/doorman/"
   s.email             = "binford2k@gmail.com"
   s.authors           = ["Ben Ford"]
   s.has_rdoc          = false

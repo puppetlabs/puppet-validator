@@ -1,0 +1,38 @@
+<html>
+<head>
+  <title>Puppet Code Validator</title>
+  <link rel="stylesheet" href="prism-default.css">
+  <script src="prism.js"></script>
+  <style>
+    div.line-highlight {
+      background-color: #ffb6b6;
+      opacity: 0.25;
+      color: black;
+      font-weight: bold;
+    }
+    span.label {
+      width: 8em;
+      font-weight: bold;
+      display: inline-block;
+      text-align: right;
+      padding-right: 0.5em;
+    }
+  </style>
+</head>
+  <body>
+    <h1>Validation Results</h1>
+    <p><%= @result[:message] %></p>
+    <% if @result.include? :line %>
+      <div class="row">
+        <span class="label">Line Number:</span><span class="message"><%= @result[:line] %></span>
+      </div>
+    <% end %>
+    <% if @result.include? :pos  %>
+      <div class="row">
+        <span class="label">Line Position:</span><span class="message"><%= @result[:pos] %></span>
+      </div>
+    <% end %>
+    <pre data-line="<%= @result[:line] %>" class="line-numbers language-puppet"><code class="line-numbers language-puppet"><%= @code %></code></pre>
+    <a href="javascript:history.back();">Try Again</a> &bull; <a href="/">Validate More Code</a>
+  </body>
+</html>
