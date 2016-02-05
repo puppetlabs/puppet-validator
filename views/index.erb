@@ -1,13 +1,23 @@
 <html>
 <head>
-    <title>Puppet Code Validator</title>
+  <title>Puppet Code Validator</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <h1>Puppet Code Validator</h1>
-  <p>Paste in Puppet code and check it for validity.</p>
+  <p>Paste Puppet code into the following textbox and check it for validity.</p>
   <form id="code" action="/validate" method="post">
-    <div><textarea name="code" id="textarea" cols="65" rows="25"></textarea></div>
-    <input type="submit" value="Validate">
+    <div class="entry">
+      <textarea name="code" id="textarea" cols="65" rows="25"></textarea>
+      <input type="submit" value="Validate">
+    </div>
   </form>
+  <p class="info">
+    Be aware that this <em>only validates syntax</em>. It will not compile a
+    catalog or sync any resources. This means that, for example, it cannot
+    identify whether you have used the proper resource types, whether package
+    names are correct, or file paths exist.  See <a href="/testing.html">more
+    information on testing and validating Puppet code.</a>
+  </p>
 </body>
 </html>

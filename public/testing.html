@@ -1,0 +1,36 @@
+<html>
+<head>
+  <title>Puppet Code Validator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Testing Puppet Code</h1>
+  <p>
+    This tool will validate the Puppet DSL syntax without compiling a catalog or syncing
+    any resources.  Be aware that this <em>only validates syntax</em>. If you have
+    variables that are incorrectly spelled or have a bad value, your code will still
+    be completely valid&mdash;and will not do what you want.
+  </p>
+  <p>
+    Some examples of flaws that will not be identified by this tool include:
+    <ul>
+      <li>Resource declarations with the incorrect name.</li>
+      <li>Including classes that do not exist.</li>
+      <li>Packages declarations with an incorrect package name.</li>
+      <li>File paths which do not exist on the agent.</li>
+      <li><code>exec</code> resources which fail to run properly.</li>
+    </ul>
+  </p>
+  <p>
+    Other tools do exist which can help make sure your code actually works as intended.
+    Some examples are:
+    <ul>
+      <li><a href="https://github.com/rodjek/puppet-lint">Puppet Lint</a></li>
+      <li><a href="http://rspec-puppet.com/tutorial/">rspec-puppet</a></li>
+      <li><a href="https://github.com/puppetlabs/puppetlabs_spec_helper">Puppetlabs Spec Helper</a></li>
+      <li><a href="https://github.com/puppetlabs/beaker">Beaker</a></li>
+    </ul>
+  </p>
+  <div class="links"><a href="javascript:history.back();">Try Again</a> &bull; <a href="/">Validate More Code</a></div>
+</body>
+</html>
