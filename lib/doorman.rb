@@ -3,17 +3,33 @@ require 'webrick'
 require 'puppet'
 require 'puppet/parser'
 
+# something like 3,000 lines of code
+MAXSIZE = 100000
+
 class Doorman < Sinatra::Base
   set :views, File.dirname(__FILE__) + '/../views'
   set :public_folder, File.dirname(__FILE__) + '/../public'
+
+  configure :production, :development do
+    enable :logging
+  end
 
   get '/' do
     erb :index
   end
 
   post '/validate' do
-    @result = validate params['code']
-    @code   = params['code']
+    logger.info 'Validating code.'
+
+    if request.body.size <= MAXSIZE
+      @result = validate params['code']
+      @code   = params['code']
+    else
+      message = "Submitted code size is #{request.body.size}, which is larger than the maximum size of #{MAXSIZE}."
+      logger.error message
+      @result = { :status => false, :message => message }
+    end
+
     erb :result
   end
 
