@@ -28,12 +28,17 @@ optparse = OptionParser.new { |opts|
         loglevel = Logger::DEBUG
     end
 
+    opts.on("--disable DISABLED_CHECKS", "Lint checks to disable. Either comma-separated list or filename.") do |arg|
+        puts "Disabling #{arg}"
+        options[:disabled_lint_checks] = arg
+    end
+
     opts.on("-l [LOGFILE]", "--logfile [LOGFILE]", "Path to logfile. Defaults to no logging, or /var/log/doorman if no filename is passed.") do |arg|
         logfile = arg || '/var/log/doorman'
     end
 
     opts.on("-p PORT", "--port", "Port to listen on. Defaults to 9000.") do |arg|
-        options[:Port] = arg
+        options[:port] = arg
     end
 
     opts.on("-t THEMEDIR", "--theme THEMEDIR", "Path to the theme directory.") do |arg|

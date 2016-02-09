@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("public/**/*")
   s.add_dependency      "sinatra",      "~> 1.3"
   s.add_dependency      "puppet",       "~> 4.0"
-  s.add_dependency      "puppet-lint",  "~> 1.1.0"
+  s.add_dependency      "puppet-lint",  "~> 1.1"
   s.description       = <<-desc
     Doorman is a simple web service that accepts arbitrary code submissions and
     validates it the way `puppet parser validate` would. It can optionally also

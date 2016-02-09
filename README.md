@@ -115,3 +115,35 @@ or `--theme` command line arguments to tell Doorman where to find your content.
 
 Alternatively, you can edit your webserver virtual host configuration to point
 to the *public* directory within your new theme, as in the example shown above.
+
+#### Disabling `puppet-lint` checks
+
+Puppet-lint is an incredibly valuable tool. That said, some of the checks it runs
+may not apply to your environment. It's easy to disable these checks, either on
+the command-line, or in the `config.ru` file. By default, Doorman will just run
+all available checks.
+
+Checks can be disabled either as a comma-separated list of checks:
+
+    root@master:~ # doorman --disable 80chars,double_quoted_strings
+
+Or in a file with one check per line.
+
+    root@master:~ # doorman --disable /etc/doorman/disabled_checks
+    root@master:~ # cat /etc/doorman/disabled_checks
+    80chars
+    double_quoted_strings
+
+This can also be done in your `config.ru`. Specifying a list would look like this:
+
+``` Ruby
+Doorman.set :disabled_lint_checks, ['80chars', 'double_quoted_strings']
+
+```
+
+And loading the disabled checks from a file would look like:
+
+``` Ruby
+Doorman.set :disabled_lint_checks, '/etc/doorman/disabled_checks'
+
+```

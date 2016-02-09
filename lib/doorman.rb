@@ -16,6 +16,35 @@ class Doorman < Sinatra::Base
     env["rack.logger"] = settings.logger if settings.logger
   }
 
+  def initialize(app=nil)
+    super(app)
+
+    # there must be a better way
+    if settings.respond_to? :disabled_lint_checks
+
+      # can pass in an array, a filename, or a list of checks
+      if settings.disabled_lint_checks.class == String
+        path = File.expand_path(settings.disabled_lint_checks)
+        if File.file? path
+          data = File.readlines(path).map {|line| line.chomp }
+          data.reject! {|line| line.empty? or line.start_with? '#' }
+
+          settings.disabled_lint_checks = data
+        else
+          settings.disabled_lint_checks = settings.disabled_lint_checks.split(',')
+        end
+      end
+
+    else
+      # this seems... gross, but I don't know a better way to make sure this
+      # option exists whether it was passed in or not.
+      def settings.disabled_lint_checks
+        []
+      end
+    end
+
+  end
+
   get '/' do
     erb :index
   end
@@ -83,6 +112,10 @@ class Doorman < Sinatra::Base
 
     def lint(data)
       begin
+        settings.disabled_lint_checks.each do |check|
+          PuppetLint.configuration.send("disable_#{check}")
+        end
+
         linter = PuppetLint.new
         linter.code = data
         linter.run
