@@ -4,25 +4,37 @@ require 'rubygems'
 require 'optparse'
 require 'doorman'
 
+gemroot = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 options = {
-  :Port           => 9000,
-  :Host           => '0.0.0.0',
-  :ServerType     => WEBrick::Daemon,
+  :port           => 9000,
+  :host           => '0.0.0.0',
+  :bind           => '0.0.0.0',
+  :root           => gemroot,
 }
+logfile  = $stderr
+loglevel = Logger::WARN
 
 optparse = OptionParser.new { |opts|
-    opts.banner = "Usage : doorman [-p <port>] [-d]
+    opts.banner = "Usage : doorman [-p <port>] [-l <file>] [-d]
 
         Runs the Doorman Puppet code validator.
 
 "
 
-    opts.on("-d", "--debug", "Run in the foreground and display debugging messages") do
-        options[:ServerType] = WEBrick::SimpleServer
+    opts.on("-d", "--debug", "Display debugging messages") do
+        loglevel = Logger::DEBUG
     end
 
-    opts.on("-p PORT", "--port", "Port to run on") do |arg|
+    opts.on("-l [LOGFILE]", "--logfile [LOGFILE]", "Path to logfile. Defaults to no logging, or /var/log/doorman if no filename is passed.") do |arg|
+        logfile = arg || '/var/log/doorman'
+    end
+
+    opts.on("-p PORT", "--port", "Port to run on. Defaults to 9000.") do |arg|
         options[:Port] = arg
+    end
+
+    opts.on("-t THEMEDIR", "--theme THEMEDIR", "Path to the theme directory.") do |arg|
+        options[:root] = arg
     end
 
     opts.separator('')
@@ -34,10 +46,16 @@ optparse = OptionParser.new { |opts|
 }
 optparse.parse!
 
-if options[:ServerType] == WEBrick::Daemon
-  options[:Logger] = WEBrick::Log::new('/var/log/doorman', WEBrick::Log::WARN)
-end
+if ARGV.first == 'init'
+  FileUtils.cp   "#{gemroot}/config.ru", '.'
+  FileUtils.cp   "#{gemroot}/README.md", '.'
+  FileUtils.cp_r "#{gemroot}/public", '.'
+  FileUtils.cp_r "#{gemroot}/views", '.'
 
-Rack::Handler::WEBrick.run(Doorman, options) do |server|
-  [:INT, :TERM].each { |sig| trap(sig) { server.stop } }
+else
+  logger           = Logger.new(logfile)
+  logger.level     = loglevel
+  options[:logger] = logger
+
+  Doorman.run! options
 end

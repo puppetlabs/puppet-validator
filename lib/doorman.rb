@@ -1,33 +1,51 @@
+require 'logger'
 require 'sinatra/base'
-require 'webrick'
 require 'puppet'
 require 'puppet/parser'
+require 'puppet-lint'
 
 # something like 3,000 lines of code
 MAXSIZE = 100000
 
 class Doorman < Sinatra::Base
-  set :views, File.dirname(__FILE__) + '/../views'
-  set :public_folder, File.dirname(__FILE__) + '/../public'
+  set :logging, true
+  set :strict, true
 
-  configure :production, :development do
-    enable :logging
-  end
+  before {
+    env["rack.logger"] = settings.logger if settings.logger
+  }
 
   get '/' do
     erb :index
   end
 
   post '/validate' do
-    logger.info 'Validating code.'
+    logger.info "Validating code from #{request.ip}."
+    logger.debug "validating #{request.ip}: #{params['code']}"
 
     if request.body.size <= MAXSIZE
-      @result = validate params['code']
-      @code   = params['code']
+      result = validate params['code']
+      lint   = lint params['code'] if params['lint'] == 'on'
+      lint ||= {} # but make sure we have a data object to iterate
+
+      @code       = params['code']
+      @message    = result[:message]
+      @status     = result[:status] ? :success : :fail
+      @line       = result[:line]
+      @column     = result[:pos]
+
+      # initial highlighting for the potential syntax error
+      initial = @line ? {@line => nil} : {}
+
+      # then add all the lint warnings and tooltip
+      @highlights = lint.inject(initial) do |acc, item|
+        acc.merge({item[:line] => "#{item[:kind].upcase}: #{item[:message]}"})
+      end.to_json
+
     else
-      message = "Submitted code size is #{request.body.size}, which is larger than the maximum size of #{MAXSIZE}."
-      logger.error message
-      @result = { :status => false, :message => message }
+      @message = "Submitted code size is #{request.body.size}, which is larger than the maximum size of #{MAXSIZE}."
+      @status  = :fail
+      logger.error @message
     end
 
     erb :result
@@ -49,12 +67,26 @@ class Doorman < Sinatra::Base
 
         {:status => true, :message => 'Syntax OK'}
       rescue => detail
+        logger.warn detail.message
         err = {:status => false, :message => detail.message}
         err[:line] = detail.line if detail.methods.include? :line
         err[:pos]  = detail.pos  if detail.methods.include? :pos
         err
       end
     end
+
+    def lint(data)
+      begin
+        linter = PuppetLint.new
+        linter.code = data
+        linter.run
+        linter.print_problems
+      rescue => detail
+        logger.warn detail.message
+        nil
+      end
+    end
+
 
   end
 end

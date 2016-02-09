@@ -7,20 +7,20 @@
 </head>
   <body>
     <h1>Validation Results</h1>
-    <div class="results <%= @result[:status] ? 'success' : 'fail' %>">
-      <p><%= @result[:message] %></p>
-      <% if @result.include? :line %>
+    <div class="results <%= @status %>">
+      <p><%= @message %></p>
+      <% if @line %>
         <div class="row">
-          <span class="label">Line Number:</span><span class="message"><%= @result[:line] %></span>
+          <span class="label">Line Number:</span><span class="message"><%= @line %></span>
         </div>
       <% end %>
-      <% if @result.include? :pos  %>
+      <% if @column  %>
         <div class="row">
-          <span class="label">Line Position:</span><span class="message"><%= @result[:pos] %></span>
+          <span class="label">Column:</span><span class="message"><%= @column %></span>
         </div>
       <% end %>
     </div>
-    <pre data-line="<%= @result[:line] %>" class="line-numbers language-puppet"><code class="line-numbers language-puppet"><%= @code %></code></pre>
+    <pre data-line='<%= @highlights %>' class="line-numbers language-puppet"><code class="line-numbers language-puppet"><%= @code %></code></pre>
     <div class="links"><a href="javascript:history.back();">Try Again</a> &bull; <a href="/">Validate More Code</a></div>
     <p class="info">
       Be aware that this has <em>only validated syntax</em>. It will not compile a

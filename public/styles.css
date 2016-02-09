@@ -8,6 +8,9 @@ div.line-highlight {
   color: black;
   font-weight: bold;
 }
+div.line-highlight.with-tooltip {
+  background-color: #ffff00;
+}
 
 div.results {
   width: 65%;
