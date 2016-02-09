@@ -6,6 +6,7 @@ require 'puppet-lint'
 
 # something like 3,000 lines of code
 MAXSIZE = 100000
+CONTEXT = 3
 
 class Doorman < Sinatra::Base
   set :logging, true
@@ -35,7 +36,12 @@ class Doorman < Sinatra::Base
       @column     = result[:pos]
 
       # initial highlighting for the potential syntax error
-      initial = @line ? {@line => nil} : {}
+      if @line
+        start   = [@line - CONTEXT, 1].max
+        initial = {"#{start}-#{@line}" => nil}
+      else
+        initial = []
+      end
 
       # then add all the lint warnings and tooltip
       @highlights = lint.inject(initial) do |acc, item|
