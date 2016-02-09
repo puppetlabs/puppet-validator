@@ -15,13 +15,16 @@ logfile  = $stderr
 loglevel = Logger::WARN
 
 optparse = OptionParser.new { |opts|
-    opts.banner = "Usage : doorman [-p <port>] [-l <file>] [-d]
+    opts.banner = "Usage : doorman [-p <port>] [-l [logfile]] [-t <themedir>] [-d]
+         ↳ Runs the Doorman Puppet code validation service.
 
-        Runs the Doorman Puppet code validator.
+        doorman init
+         ↳ Copies the files needed to create a Doorman theme into $CWD.
+           This will overwrite existing files.
 
 "
 
-    opts.on("-d", "--debug", "Display debugging messages") do
+    opts.on("-d", "--debug", "Display or log debugging messages") do
         loglevel = Logger::DEBUG
     end
 
@@ -29,7 +32,7 @@ optparse = OptionParser.new { |opts|
         logfile = arg || '/var/log/doorman'
     end
 
-    opts.on("-p PORT", "--port", "Port to run on. Defaults to 9000.") do |arg|
+    opts.on("-p PORT", "--port", "Port to listen on. Defaults to 9000.") do |arg|
         options[:Port] = arg
     end
 
@@ -40,14 +43,23 @@ optparse = OptionParser.new { |opts|
     opts.separator('')
 
     opts.on("-h", "--help", "Displays this help") do
+        puts
         puts opts
+        puts
         exit
     end
 }
 optparse.parse!
 
 if ARGV.first == 'init'
+  puts 'Initializing directory as new Doorman theme...'
+  unless (Dir.glob '**/*').empty?
+    puts '-- Overwriting existing files. Press Ctrl-C to cancel or <Enter> to continue.'
+    STDIN.gets
+  end
+
   FileUtils.cp   "#{gemroot}/config.ru", '.'
+  FileUtils.cp   "#{gemroot}/LICENSE", '.'
   FileUtils.cp   "#{gemroot}/README.md", '.'
   FileUtils.cp_r "#{gemroot}/public", '.'
   FileUtils.cp_r "#{gemroot}/views", '.'
