@@ -57,7 +57,7 @@ Listen 9090
 </VirtualHost>
 ```
 
-The ``DocumentRoot` and `Directory` directives can point directly to the `public`
+The `DocumentRoot` and `Directory` directives can point directly to the `public`
 directory *within the gem installation directory*, or it can point to the `public`
 directory of a custom theme you've created. See
 [Creating your own theme](#creating-your-own-theme) below. The two directives
