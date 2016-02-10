@@ -12,7 +12,7 @@
       <textarea name="code" id="textarea" cols="65" rows="25"></textarea>
       <input type="submit" value="Validate">
       <input type="checkbox" name="lint">Include <code>puppet-lint</code> style checks.
-      <a id="checks-button" href="javascript:$('#checks-menu').slideToggle();">customize &#9662;</a>
+      <a id="checks-button" href="#" onclick="$('#checks-menu').slideToggle(); return false;">customize &#9662;</a>
       <fieldset id="checks-menu">
         <legend>Enabled Lint Checks</legend>
         <ul id="checks">
