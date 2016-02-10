@@ -1,16 +1,16 @@
 require 'date'
 
 Gem::Specification.new do |s|
-  s.name              = "doorman"
+  s.name              = "puppet-validator"
   s.version           = '0.0.1'
   s.date              = Date.today.to_s
   s.summary           = "Puppet code validator as a service"
-  s.homepage          = "https://github.com/puppetlabs/doorman/"
+  s.homepage          = "https://github.com/puppetlabs/puppet-validator/"
   s.email             = "binford2k@gmail.com"
   s.authors           = ["Ben Ford"]
   s.has_rdoc          = false
   s.require_path      = "lib"
-  s.executables       = %w( doorman )
+  s.executables       = %w( puppet-validator )
   s.files             = %w( README.md LICENSE config.ru )
   s.files            += Dir.glob("lib/**/*")
   s.files            += Dir.glob("bin/**/*")
@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.add_dependency      "puppet",       "~> 4.0"
   s.add_dependency      "puppet-lint",  "~> 1.1"
   s.description       = <<-desc
-    Doorman is a simple web service that accepts arbitrary code submissions and
+    Puppet Validator is a simple web service that accepts arbitrary code submissions and
     validates it the way `puppet parser validate` would. It can optionally also
     run `puppet-lint` checks on the code and display both results together.
   desc

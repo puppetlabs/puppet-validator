@@ -8,7 +8,7 @@ require 'puppet-lint'
 MAXSIZE = 100000
 CONTEXT = 3
 
-class Doorman < Sinatra::Base
+class PuppetValidator < Sinatra::Base
   set :logging, true
   set :strict, true
 

@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'optparse'
-require 'doorman'
+require 'puppet-validator'
 
 gemroot = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 options = {
@@ -15,11 +15,11 @@ logfile  = $stderr
 loglevel = Logger::WARN
 
 optparse = OptionParser.new { |opts|
-    opts.banner = "Usage : doorman [-p <port>] [-l [logfile]] [-t <themedir>] [-d]
-         ↳ Runs the Doorman Puppet code validation service.
+    opts.banner = "Usage : puppet-validator [-p <port>] [-l [logfile]] [-t <themedir>] [-d]
+         ↳ Runs the Puppet Validator code validation service.
 
-        doorman init
-         ↳ Copies the files needed to create a Doorman theme into $CWD.
+        puppet-validator init
+         ↳ Copies the files needed to create a puppet-validator theme into $CWD.
            This will overwrite existing files.
 
 "
@@ -33,8 +33,8 @@ optparse = OptionParser.new { |opts|
         options[:disabled_lint_checks] = arg
     end
 
-    opts.on("-l [LOGFILE]", "--logfile [LOGFILE]", "Path to logfile. Defaults to no logging, or /var/log/doorman if no filename is passed.") do |arg|
-        logfile = arg || '/var/log/doorman'
+    opts.on("-l [LOGFILE]", "--logfile [LOGFILE]", "Path to logfile. Defaults to no logging, or /var/log/puppet-validator if no filename is passed.") do |arg|
+        logfile = arg || '/var/log/puppet-validator'
     end
 
     opts.on("-p PORT", "--port", "Port to listen on. Defaults to 9000.") do |arg|
@@ -57,7 +57,7 @@ optparse = OptionParser.new { |opts|
 optparse.parse!
 
 if ARGV.first == 'init'
-  puts 'Initializing directory as new Doorman theme...'
+  puts 'Initializing directory as new puppet-validator theme...'
   unless (Dir.glob '**/*').empty?
     puts '-- Overwriting existing files. Press Ctrl-C to cancel or <Enter> to continue.'
     STDIN.gets
@@ -74,5 +74,5 @@ else
   logger.level     = loglevel
   options[:logger] = logger
 
-  Doorman.run! options
+  PuppetValidator.run! options
 end

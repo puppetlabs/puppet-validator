@@ -1,11 +1,11 @@
 require 'rubygems'
-require 'doorman'
+require 'puppet-validator'
 
-logger       = Logger.new('/var/log/doorman')
+logger       = Logger.new('/var/log/puppet-validator')
 logger.level = Logger::WARN
 
-Doorman.set :root, File.dirname(__FILE__)
-Doorman.set :logger, logger
-Doorman.set :disabled_lint_checks, ['80chars']
+PuppetValidator.set :root, File.dirname(__FILE__)
+PuppetValidator.set :logger, logger
+PuppetValidator.set :disabled_lint_checks, ['80chars']
 
-run Doorman
+run PuppetValidator
