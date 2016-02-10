@@ -823,11 +823,16 @@ function highlightLines(pre, lines, classes) {
 
     // append a tooltip element if one is set
     if(ranges[key]) {
+      var marker = document.createElement('div');
+	    marker.className = 'marker';
+
 	    var tooltip = document.createElement('div');
 	    tooltip.textContent = ranges[key];
 	    tooltip.className = 'line-highlight-tooltip';
 
 	    line.className = (classes || '') + ' line-highlight with-tooltip';
+
+	    line.appendChild(marker);
 	    line.appendChild(tooltip);
     }
 

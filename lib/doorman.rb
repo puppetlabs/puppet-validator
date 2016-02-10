@@ -58,18 +58,19 @@ class Doorman < Sinatra::Base
       lint   = lint params['code'] if params['lint'] == 'on'
       lint ||= {} # but make sure we have a data object to iterate
 
-      @code       = params['code']
-      @message    = result[:message]
-      @status     = result[:status] ? :success : :fail
-      @line       = result[:line]
-      @column     = result[:pos]
+      @code          = params['code']
+      @message       = result[:message]
+      @status        = result[:status] ? :success : :fail
+      @line          = result[:line]
+      @column        = result[:pos]
+      @lint_warnings = ! lint.empty?
 
       # initial highlighting for the potential syntax error
       if @line
         start   = [@line - CONTEXT, 1].max
         initial = {"#{start}-#{@line}" => nil}
       else
-        initial = []
+        initial = {}
       end
 
       # then add all the lint warnings and tooltip

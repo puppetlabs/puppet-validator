@@ -3,14 +3,37 @@ body {
 }
 
 div.line-highlight {
-  background-color: #ffb6b6;
-  opacity: 0.25;
+  /* Cannot use opacity, because that affects tooltip children as well */
+  background-color: rgba(255, 181, 181, 0.25);
   color: black;
   font-weight: bold;
 }
 div.line-highlight.with-tooltip {
-  background-color: #ffff00;
+  background-color: rgba(255, 255, 0, 0.25);
+  pointer-events: auto;
 }
+  div.line-highlight.with-tooltip .marker {
+    width: 0px;
+    height: 0px;
+    border-top: 0.5em solid #000;
+    border-left: 0.5em solid transparent;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  div.line-highlight.with-tooltip .line-highlight-tooltip {
+    position: absolute;
+    top: -1.75em;
+    right: 0;
+    background-color: #aaccaa;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 0 3px;
+    display: none;
+  }
+  div.line-highlight.with-tooltip:hover .line-highlight-tooltip {
+    display: block;
+  }
 
 div.results {
   width: 65%;
@@ -26,10 +49,10 @@ div.results {
     background-color: #ffb6b6;
   }
 
-  div.results p:first-child {
+  div.results p {
     margin: 0;
   }
-  div.results div:first-of-type {
+  div.results div.row:first-of-type {
     margin-top: 0.5em;
   }
 
