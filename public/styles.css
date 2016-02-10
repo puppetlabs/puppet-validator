@@ -82,6 +82,33 @@ div.entry {
     width: 100%;
   }
 
+#checks-button {
+  font-size: small;
+  background-color: #fff;
+  padding: 0 2px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  text-decoration: none;
+}
+#checks-button:hover {
+  background-color: #efefef;
+}
+#checks-menu {
+  display: none;
+  border-radius: 0.5em;
+}
+#checks {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  -moz-column-count: 2;
+  -moz-column-gap: 20px;
+  -webkit-column-count: 2;
+  -webkit-column-gap: 20px;
+  column-count: 2;
+  column-gap: 20px;
+}
+
 p.info {
     background: #fefefe url('info.png') no-repeat 5px 5px !important;
     border: 1px solid #efefef;

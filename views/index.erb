@@ -2,6 +2,7 @@
 <head>
   <title>Puppet Validator</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 </head>
 <body>
   <h1>Puppet Code Validator</h1>
@@ -11,6 +12,17 @@
       <textarea name="code" id="textarea" cols="65" rows="25"></textarea>
       <input type="submit" value="Validate">
       <input type="checkbox" name="lint">Include <code>puppet-lint</code> style checks.
+      <a id="checks-button" href="javascript:$('#checks-menu').slideToggle();">customize &#9662;</a>
+      <fieldset id="checks-menu">
+        <legend>Enabled Lint Checks</legend>
+        <ul id="checks">
+          <% @checks.each do |check| %>
+          <li><label>
+            <input type="checkbox" name="checks[]" value="<%= check %>" id="check_<%= check %>" <% unless @disabled.include? check %>checked<% end %>><%= check %></input>
+          </label></li>
+          <% end %>
+        </ul>
+      </fieldset>
     </div>
   </form>
   <p class="info">

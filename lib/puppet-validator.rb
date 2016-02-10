@@ -46,6 +46,9 @@ class PuppetValidator < Sinatra::Base
   end
 
   get '/' do
+    @disabled = settings.disabled_lint_checks
+    @checks   = puppet_lint_checks
+
     erb :index
   end
 
@@ -55,7 +58,7 @@ class PuppetValidator < Sinatra::Base
 
     if request.body.size <= MAXSIZE
       result = validate params['code']
-      lint   = lint params['code'] if params['lint'] == 'on'
+      lint   = lint(params['code'], params['checks']) if params['lint'] == 'on'
       lint ||= {} # but make sure we have a data object to iterate
 
       @code          = params['code']
@@ -111,10 +114,24 @@ class PuppetValidator < Sinatra::Base
       end
     end
 
-    def lint(data)
+    def lint(data, checks=nil)
       begin
-        settings.disabled_lint_checks.each do |check|
-          PuppetLint.configuration.send("disable_#{check}")
+        if checks
+          logger.info "Disabling checks: #{(puppet_lint_checks - checks).inspect}"
+
+          checks.each do |check|
+            PuppetLint.configuration.send("enable_#{check}")
+          end
+
+          (puppet_lint_checks - checks).each do |check|
+            PuppetLint.configuration.send("disable_#{check}")
+          end
+        else
+          logger.info "Disabling checks: #{settings.disabled_lint_checks.inspect}"
+
+          settings.disabled_lint_checks.each do |check|
+            PuppetLint.configuration.send("disable_#{check}")
+          end
         end
 
         linter = PuppetLint.new
@@ -127,6 +144,10 @@ class PuppetValidator < Sinatra::Base
       end
     end
 
+    def puppet_lint_checks
+      # sanitize because reasonss
+      PuppetLint.configuration.checks.map {|check| check.to_s}
+    end
 
   end
 end
