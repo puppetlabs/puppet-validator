@@ -11,9 +11,9 @@
     <div class="entry">
       <textarea name="code" id="textarea" cols="65" rows="25"></textarea>
       <input type="submit" value="Validate">
-      <input type="checkbox" name="lint">Include <code>puppet-lint</code> style checks.
-      <a id="checks-button" href="#" onclick="$('#checks-menu').slideToggle(); return false;">customize &#9662;</a>
-      <fieldset id="checks-menu">
+      <label><input type="checkbox" name="lint">Include <code>puppet-lint</code> style checks.</label>
+      <a class="button" href="#" onclick="$('#checks-menu').slideToggle(); return false;">customize &#9662;</a>
+      <fieldset id="checks-menu" class="menu">
         <legend>Enabled Lint Checks</legend>
         <ul id="checks">
           <% @checks.each do |check| %>
