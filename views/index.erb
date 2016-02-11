@@ -19,7 +19,7 @@
         <ul id="checks">
           <% @checks.each do |check| %>
           <li><label>
-            <input type="checkbox" name="checks[]" value="<%= check %>" id="check_<%= check %>" <% unless @disabled.include? check %>checked<% end %> disabled><%= check %></input>
+            <input type="checkbox" name="checks[]" value="<%= check %>" id="check_<%= check %>" <% unless @disabled.include? check %>checked<% end %>><%= check %></input>
           </label></li>
           <% end %>
         </ul>
