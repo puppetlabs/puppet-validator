@@ -98,7 +98,7 @@ class PuppetValidator < Sinatra::Base
 
     def validate(data)
       begin
-        Puppet.settings[:app_management] = true if Gem::Version.new(Puppet.version) >= Gem::Version.new('4.3.2')
+        Puppet.settings[:app_management] = Gem::Version.new(Puppet.version) >= Gem::Version.new('4.3.2')
 
         Puppet[:code] = data
         validation_environment = Puppet.lookup(:current_environment)
