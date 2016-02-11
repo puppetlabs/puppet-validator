@@ -7,12 +7,10 @@
 <body>
   <h1>Testing Puppet Code</h1>
   <p>
-    This tool will validate the Puppet DSL syntax without compiling a catalog or syncing
-    any resources.  Be aware that this <em>only validates syntax</em>. If you have
-    variables that are incorrectly spelled or have a bad value, your code will still
-    be completely valid&mdash;and will not do what you want. See the
-    <a href="https://docs.puppetlabs.com/puppet/latest/reference/lang_visual_index.html">Puppet Language Guide</a>
-    if you need help understanding the syntax.
+    This tool will validate the Puppet DSL syntax. It won't actually compile a catalog or
+    enforce any configuration state. This means that this <em>only validates syntax</em>.
+    There are many ways in which a Puppet manifest may have valid syntax but be completely
+    incorrect for your purposes and not do what you intend.
   </p>
   <p>
     Some examples of flaws that will not be identified by this tool include:
@@ -25,13 +23,14 @@
     </ul>
   </p>
   <p>
-    Other tools do exist which can help make sure your code actually works as intended.
+    Many other resources exist which can help make sure your code actually works as intended.
     Some examples are:
     <ul>
-      <li><a href="https://github.com/rodjek/puppet-lint">Puppet Lint</a></li>
-      <li><a href="http://rspec-puppet.com/tutorial/">rspec-puppet</a></li>
-      <li><a href="https://github.com/puppetlabs/puppetlabs_spec_helper">Puppetlabs Spec Helper</a></li>
-      <li><a href="https://github.com/puppetlabs/beaker">Beaker</a></li>
+      <li><a href="https://docs.puppetlabs.com/puppet/latest/reference/lang_visual_index.html">the Puppet Language Guide</a></li>
+      <li><a href="https://github.com/rodjek/puppet-lint">Puppet Lint</a> style validation</li>
+      <li><a href="http://rspec-puppet.com/tutorial/">rspec-puppet</a> unit testing framework</li>
+      <li><a href="https://github.com/puppetlabs/puppetlabs_spec_helper">Puppetlabs Spec Helper</a> for rspec-puppet</li>
+      <li><a href="https://github.com/puppetlabs/beaker">Beaker</a> testing automation platform</li>
     </ul>
   </p>
   <div class="links"><a href="javascript:history.back();">Try Again</a> &bull; <a href="/">Validate More Code</a></div>

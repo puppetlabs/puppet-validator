@@ -28,11 +28,10 @@
     <pre data-line='<%= @highlights %>' class="line-numbers language-puppet"><code class="line-numbers language-puppet"><%= @code %></code></pre>
     <div class="links"><a href="javascript:history.back();">Try Again</a> &bull; <a href="/">Validate More Code</a></div>
     <p class="info">
-      Be aware that this has <em>only validated syntax</em>. It will not compile a
-      catalog or sync any resources. This means that, for example, it cannot
-      identify whether you have used the proper resource types, whether package
-      names are correct, or file paths exist.  See <a href="/testing.html">more
-      information on testing and validating Puppet code.</a>
+      Be aware that this has <em>only validated syntax</em>. It will not compile or
+      enforce a catalog, which means that there are many mistakes that it cannot
+      identify. See <a href="/testing.html">more information on testing and
+      validating Puppet code.</a>
     </p>
   </body>
 </html>
