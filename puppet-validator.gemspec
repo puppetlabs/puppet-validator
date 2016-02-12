@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("views/**/*")
   s.files            += Dir.glob("public/**/*")
   s.add_dependency      "sinatra",      "~> 1.3"
-  s.add_dependency      "puppet",       "~> 4.0"
+  s.add_dependency      "puppet",       "~> 2.7"
   s.add_dependency      "puppet-lint",  "~> 1.1"
   s.description       = <<-desc
     Puppet Validator is a simple web service that accepts arbitrary code submissions and

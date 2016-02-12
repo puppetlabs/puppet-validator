@@ -19,9 +19,10 @@ class PuppetValidator < Sinatra::Base
   def initialize(app=nil)
     super(app)
 
+    Puppet.initialize_settings if Puppet.version.to_i >= 3
+
     # there must be a better way
     if settings.respond_to? :disabled_lint_checks
-
       # can pass in an array, a filename, or a list of checks
       if settings.disabled_lint_checks.class == String
         path = File.expand_path(settings.disabled_lint_checks)
@@ -101,9 +102,14 @@ class PuppetValidator < Sinatra::Base
         Puppet.settings[:app_management] = true if Gem::Version.new(Puppet.version) >= Gem::Version.new('4.3.2')
 
         Puppet[:code] = data
-        validation_environment = Puppet.lookup(:current_environment)
 
-        validation_environment.check_for_reparse
+        if Puppet::Node::Environment.respond_to?(:create)
+          validation_environment = Puppet::Node::Environment.create(:production, [])
+          validation_environment.check_for_reparse
+        else
+          validation_environment = Puppet::Node::Environment.new(:production)
+        end
+
         validation_environment.known_resource_types.clear
 
         {:status => true, :message => 'Syntax OK'}
