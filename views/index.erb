@@ -8,9 +8,9 @@
 <body>
   <h1>Puppet Code Validator</h1>
   <p>Paste Puppet code into the following textbox and check it for validity.</p>
-  <form id="code" action="/validate" method="post">
+  <form action="/validate" method="post">
     <div class="entry">
-      <textarea name="code" id="textarea" cols="65" rows="25"></textarea>
+      <textarea name="code" id="code" cols="65" rows="25"></textarea>
       <input type="submit" value="Validate">
       <label><input type="checkbox" name="lint" id="lint" onchange="toggleChecks();">Include <code>puppet-lint</code> style checks.</label>
       <a class="button" href="#" onclick="toggleMenu();">customize &#9662;</a>
