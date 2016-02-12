@@ -16,11 +16,11 @@ loglevel = Logger::WARN
 
 optparse = OptionParser.new { |opts|
     opts.banner = "Usage : puppet-validator [-p <port>] [-l [logfile]] [-t <themedir>] [-d]
-         ↳ Runs the Puppet Validator code validation service.
+         -- Runs the Puppet Validator code validation service.
 
         puppet-validator init
-         ↳ Copies the files needed to create a puppet-validator theme into $CWD.
-           This will overwrite existing files.
+         -- Copies the files needed to create a puppet-validator theme into $CWD.
+            This will overwrite existing files.
 
 "
 
