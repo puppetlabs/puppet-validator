@@ -19,7 +19,7 @@ class PuppetValidator < Sinatra::Base
   def initialize(app=nil)
     super(app)
 
-    Puppet.initialize_settings if Puppet.version.to_i >= 3
+    Puppet.initialize_settings if Puppet.version.to_i == 3 and Puppet.settings[:confdir].nil?
 
     # there must be a better way
     if settings.respond_to? :disabled_lint_checks
@@ -112,7 +112,7 @@ class PuppetValidator < Sinatra::Base
 
         validation_environment.known_resource_types.clear
 
-        {:status => true, :message => 'Syntax OK'}
+        {:status => true, :message => "Syntax OK for Puppet version #{Puppet.version}"}
       rescue => detail
         logger.warn detail.message
         err = {:status => false, :message => detail.message}
