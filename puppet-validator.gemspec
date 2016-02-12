@@ -2,7 +2,7 @@ require 'date'
 
 Gem::Specification.new do |s|
   s.name              = "puppet-validator"
-  s.version           = '0.0.3'
+  s.version           = '0.0.4'
   s.date              = Date.today.to_s
   s.summary           = "Puppet code validator as a service"
   s.homepage          = "https://github.com/puppetlabs/puppet-validator/"
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("views/**/*")
   s.files            += Dir.glob("public/**/*")
   s.add_dependency      "sinatra",      "~> 1.3"
-  s.add_dependency      "puppet",       "~> 2.7"
+  s.add_dependency      "puppet",       [">= 2.7", "<5.0"]
   s.add_dependency      "puppet-lint",  "~> 1.1"
   s.description       = <<-desc
     Puppet Validator is a simple web service that accepts arbitrary code submissions and
