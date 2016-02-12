@@ -3,6 +3,10 @@ body {
   padding: 0 2em;
 }
 
+/* keeps the tooltip from clipping to the pre */
+pre[class*="language-"] {
+  overflow: visible;
+}
 div.line-highlight {
   /* Cannot use opacity, because that affects tooltip children as well */
   background-color: rgba(255, 181, 181, 0.25);
