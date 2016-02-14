@@ -8,7 +8,8 @@
 </head>
   <body>
     <h1>Validation Results</h1>
-    <div class="results <%= @status %>">
+    <fieldset class="results <%= @status %>">
+      <legend>Puppet version <%= @version %></legend>
       <p><%= @message %></p>
       <% if @line %>
         <div class="row">
@@ -24,7 +25,7 @@
         <hr />
         <p>See inline <code>puppet-lint</code> warnings.</p>
       <% end %>
-    </div>
+    </fieldset>
     <pre data-line='<%= @highlights %>' class="line-numbers language-puppet"><code class="line-numbers language-puppet"><%= @code %></code></pre>
     <div class="links"><a href="javascript:history.back();">Try Again</a> &bull; <a href="/">Validate More Code</a></div>
     <p class="info">

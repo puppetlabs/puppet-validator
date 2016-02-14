@@ -40,28 +40,35 @@ div.line-highlight.with-tooltip {
     display: block;
   }
 
-div.results {
+.results {
   width: 65%;
   border: 1px solid black;
   border-radius: 0.25em;
   padding: 0.5em;
   margin: 0 auto;
 }
-  div.results.success {
+  .results legend {
+    text-align: right;
+    padding: 3px;
+    background-color: #dedede;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  .results.success {
     background-color: #61ff6e;
   }
-  div.results.fail {
+  .results.fail {
     background-color: #ffb6b6;
   }
 
-  div.results p {
+  .results p {
     margin: 0;
   }
-  div.results div.row:first-of-type {
+  .results div.row:first-of-type {
     margin-top: 0.5em;
   }
 
-  div.results span.label {
+  .results span.label {
     width: 7em;
     font-weight: bold;
     display: inline-block;
@@ -86,6 +93,11 @@ div.entry {
   div.entry textarea {
     width: 100%;
   }
+
+input#validate,
+select#versions {
+  margin-right: 2em;
+}
 
 a.button {
   font-size: small;

@@ -44,9 +44,16 @@ class PuppetValidator < Sinatra::Base
       end
     end
 
+    unless settings.respond_to? :puppet_versions
+      def settings.puppet_versions
+        []
+      end
+    end
+
   end
 
   get '/' do
+    @versions = [Puppet.version] + settings.puppet_versions
     @disabled = settings.disabled_lint_checks
     @checks   = puppet_lint_checks
 
@@ -62,6 +69,7 @@ class PuppetValidator < Sinatra::Base
       lint   = lint(params['code'], params['checks']) if params['lint'] == 'on'
       lint ||= {} # but make sure we have a data object to iterate
 
+      @version       = Puppet.version
       @code          = params['code']
       @message       = result[:message]
       @status        = result[:status] ? :success : :fail
@@ -112,7 +120,7 @@ class PuppetValidator < Sinatra::Base
 
         validation_environment.known_resource_types.clear
 
-        {:status => true, :message => "Syntax OK for Puppet version #{Puppet.version}"}
+        {:status => true, :message => 'Syntax OK'}
       rescue => detail
         logger.warn detail.message
         err = {:status => false, :message => detail.message}

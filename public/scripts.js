@@ -34,4 +34,14 @@ $( document ).ready(function() {
       }
   });
 
+  if ($('select#versions option').length == 1) {
+    $('select#versions').attr('disabled', true);
+  }
+  else {
+    $('select#versions').change(function() {
+      var action = ('/' + $( this ).val() + '/validate').replace(/^\/+/, '/');
+      $('form').attr('action', action );
+    });
+  }
+
 });
