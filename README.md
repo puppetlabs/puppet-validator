@@ -16,11 +16,11 @@ Puppet Validator is completely themeable, albeit rather primitively.
 
 This is the simplest way to run Puppet Validator. It has no external dependencies, other
 than the handful of gems it uses. This command will start the service. It will
-not daemonize itself, though a `systemd` init script is provided that will take
-care of that for you. It will default to running on port 9000, and will serve
-content directly out of its installation directory. You can override and customize
-the web content by passing the `-t` or `--theme` command-line argument. See
-[Creating your own theme](#creating-your-own-theme) below.
+not daemonize itself, though a [`systemd` init script is provided](#running-standalone-with-systemd)
+that will take care of that for you. It will default to running on port 9000,
+and will serve content directly out of its installation directory. You can
+override and customize the web content by passing the `-t` or `--theme`
+command-line argument. See [Creating your own theme](#creating-your-own-theme) below.
 
 Options:
 
@@ -239,3 +239,23 @@ There is one final trick. Passenger requires a unique filesystem location for it
     root@master:~ # ln -s . 3.6.2
 
 Now restart Apache and you're all gravy.
+
+#### Running standalone with `systemd`
+
+A simple `systemd` init script might look something like:
+
+    # /usr/lib/systemd/system/puppet-validator.service
+    [Unit]
+    Description=Puppet Validator
+    After=network.target
+
+    [Service]
+    ExecStart=puppet-validator
+    Restart=on-failure
+    KillSignal=SIGINT
+
+    [Install]
+    WantedBy=multi-user.target
+
+Customize the command line as needed. You might include a `--theme` or `--port`
+argument, or you might provide the full path to an `rvm` installed gem.
