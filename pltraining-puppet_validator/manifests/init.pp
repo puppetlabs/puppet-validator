@@ -27,8 +27,13 @@ class puppet_validator (
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    source  => 'puppet:///modules/puppet_validator/docroot',
-    recurse => true,
+    notify  => Class['apache'],
+  }
+
+  exec { 'puppet-validator init':
+    cwd     => $path,
+    creates => "${path}/config.ru",
+    path    => '/bin:/usr/bin/:/usr/local/bin',
     notify  => Class['apache'],
   }
 
