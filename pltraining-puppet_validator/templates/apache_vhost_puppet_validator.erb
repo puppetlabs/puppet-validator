@@ -1,0 +1,8 @@
+
+  # Puppet Validator extra configuration for Puppet version <%= @version %>
+  Alias /<%= @version %> <%= @path %>/<%= @version %>/public
+  <Location /<%= @version %>>
+    PassengerBaseURI /<%= @version %>
+    PassengerAppRoot <%= @path %>/<%= @version %>
+    PassengerRuby "/usr/local/rvm/gems/<%= @rubyversion %>@puppet<%= @version %>/wrappers/ruby"
+  </Location>

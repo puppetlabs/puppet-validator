@@ -77,8 +77,10 @@ require 'puppet-validator'
 logger       = Logger.new('/var/log/puppet-validator')
 logger.level = Logger::WARN
 
+PuppetValidator.set :puppet_versions, Dir.glob('*').select {|f| File.symlink? f and File.readlink(f) == '.' }
 PuppetValidator.set :root, File.dirname(__FILE__)
 PuppetValidator.set :logger, logger
+PuppetValidator.set :disabled_lint_checks, ['80chars']
 
 run PuppetValidator
 ```
@@ -147,3 +149,93 @@ And loading the disabled checks from a file would look like:
 PuppetValidator.set :disabled_lint_checks, '/etc/puppet-validator/disabled_checks'
 
 ```
+
+#### Validating code against multiple Puppet versions
+
+It is not very straightforward to load multiple versions of a library gem in Ruby.
+This makes it virtually impossible to validate multiple versions of the language
+directly in the tool. However, Passenger has allowed you to load different Ruby
+versions in different `Location` blocks since version 4.0 by loading separate
+threads for each.
+
+We can take advantage of that by configuring multiple Ruby environments using `rvm`
+or `rbenv` and installing different gemsets. A simple Puppet module to do this
+is included in the repository, with the caveat that it was designed to fully own
+a single-purpose VM and has so far only been tested on CentOS 7.
+
+If configuring manually, you'll need to create a gemset for each Puppet version
+you want to validate, with something like the following.
+
+    root@master:~ # rvm install ruby-1.9.3-p551
+    Searching for binary rubies, this might take some time.
+    [...]
+    root@master:~ # rvm use 1.9
+    Using /usr/local/rvm/gems/ruby-1.9.3-p551
+    root@master:~ # rvm gemset create puppet2.7.4
+    ruby-1.9.3-p551 - #gemset created /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4
+    ruby-1.9.3-p551 - #generating puppet2.7.4 wrappers........
+    root@master:~ # rvm gemset use puppet2.7.4
+    Using ruby-1.9.3-p551 with gemset puppet2.7.4
+    root@master:~ # gem install puppet -v 2.7.4
+    [...]
+    root@master:~ # gem install puppet-validator
+    [...]
+    root@master:~ # passenger-config --ruby-command
+    passenger-config was invoked through the following Ruby interpreter:
+      Command: /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby
+      Version: ruby 1.9.3p551 (2014-11-13 revision 48407) [x86_64-linux]
+      To use in Apache: PassengerRuby /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby
+      To use in Nginx : passenger_ruby /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby
+      To use with Standalone: /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby /usr/bin/passenger start
+    
+    
+    ## Notes for RVM users
+    Do you want to know which command to use for a different Ruby interpreter? 'rvm use' that Ruby interpreter, then re-run 'passenger-config about ruby-command'.
+    
+Make a note of the `PassengerRuby` command for each gemset. You'll use it in the next step.
+
+You will need a `Location` block in your Apache `VirtualHost` for each versioned
+Puppet gemset you created above. The example file below shows blocks for three
+Puppet versions with the current version installed into the default directory.
+
+``` Apache
+<VirtualHost *:80>
+  ServerName vhost.example.com
+  DocumentRoot "/var/www/puppet-validator/public"
+
+  # The default root will validate against the current Puppet version
+  <Directory "/var/www/puppet-validator/public">
+    Options -MultiViews
+    AllowOverride All
+    Require all granted
+  </Directory>
+
+  Alias /2.7.4 /var/www/puppet-validator/2.7.4/public
+  <Location /2.7.4>
+    PassengerBaseURI /2.7.4
+    PassengerAppRoot /var/www/puppet-validator/2.7.4
+    PassengerRuby "/usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby"
+  </Location>
+
+  Alias /3.6.2 /var/www/puppet-validator/3.6.2/public
+  <Location /3.6.2>
+    PassengerBaseURI /3.6.2
+    PassengerAppRoot /var/www/puppet-validator/3.6.2
+    PassengerRuby "/usr/local/rvm/gems/ruby-1.9.3-p551@puppet3.6.2/wrappers/ruby"
+  </Location>
+
+  ## Logging
+  ErrorLog "/var/log/httpd/vhost.example.com_error.log"
+  ServerSignature Off
+  CustomLog "/var/log/httpd/vhost.example.com_access.log" combined
+</VirtualHost>
+```
+
+There is one final trick. Passenger requires a unique filesystem location for its
+`AppRoot`. However, it will respect symlinks, so let's create one for each version:
+
+    root@master:~ # cd /var/www/puppet-validator
+    root@master:~ # ln -s . 2.7.4
+    root@master:~ # ln -s . 3.6.2
+
+Now restart Apache and you're all gravy.
