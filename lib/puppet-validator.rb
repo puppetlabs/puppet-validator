@@ -44,7 +44,10 @@ class PuppetValidator < Sinatra::Base
       end
     end
 
-    unless settings.respond_to? :puppet_versions
+    if settings.respond_to? :puppet_versions
+      # put our supported versions in reverse semver order
+      settings.puppet_versions = settings.puppet_versions.sort_by { |v| Gem::Version.new(v) }.reverse
+    else
       def settings.puppet_versions
         []
       end
