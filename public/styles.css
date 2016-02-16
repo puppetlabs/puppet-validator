@@ -92,6 +92,7 @@ div.entry {
 }
   div.entry textarea {
     width: 100%;
+    font-family: monospace;
   }
 
 input#validate,

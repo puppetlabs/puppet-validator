@@ -6,7 +6,6 @@ function toggleChecks() {
 
 function toggleMenu() {
   $('#checks-menu').slideToggle();
-  return false;
 }
 
 $( document ).ready(function() {
