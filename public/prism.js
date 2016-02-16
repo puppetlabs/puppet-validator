@@ -763,7 +763,7 @@ var isLineHeightRounded = (function() {
 	return function() {
 		if(typeof res === 'undefined') {
 			var d = document.createElement('div');
-			d.style.fontSize = '13px';
+			d.style.fontSize = '1em';
 			d.style.lineHeight = '1.5';
 			d.style.padding = 0;
 			d.style.border = 0;
