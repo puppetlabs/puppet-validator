@@ -26,6 +26,8 @@
   "description": "Installs and configures Puppet Validator, with multiple Puppet version validation. Only tested with CentOS 7, so far. This was only designed to work with fairly tight constraints--a single purpose VM running a supported operating system--and there are no indications that it will work in other configurations.",
   "dependencies": [
     {"name":"maestrodev/rvm",                 "version_requirement":">= 1.12.1"},
-    {"name":"puppetlabs/apache",              "version_requirement":">= 1.1.1" }
+    {"name":"pltraining/dirtree",             "version_requirement":">= 0.2.2" },
+    {"name":"puppetlabs/apache",              "version_requirement":">= 1.1.1" },
+    {"name":"stahnma-epel",                   "version_requirement":">= 1.2.2" }
   ]
 }

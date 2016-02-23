@@ -5,6 +5,8 @@ class puppet_validator (
   $versions    = undef,
   $rubyversion = 'ruby-1.9.3-p551',
 ) {
+  include epel
+
   class { 'apache':
     default_vhost => false,
   }
@@ -20,6 +22,13 @@ class puppet_validator (
     priority       => '25',
     passenger_ruby => '/usr/bin/ruby',
     options        => ['-MultiViews']
+  }
+
+  # Since we don't use the default vhost, let's make sure the dir exists
+  dirtree { $path:
+    ensure  => present,
+    parents => true,
+    before  => File[$path]
   }
 
   file { $path:
