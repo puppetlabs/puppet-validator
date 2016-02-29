@@ -64,6 +64,13 @@ div.line-highlight.with-tooltip {
   .results p {
     margin: 0;
   }
+  .results img.share_icon {
+    float: right;
+    cursor: pointer;
+  }
+  .results hr {
+    clear: both;
+  }
   .results div.row:first-of-type {
     margin-top: 0.5em;
   }
@@ -142,4 +149,9 @@ p.info {
 }
 p.info:first-line {
     font-weight: bold;
+}
+
+/* jquery UI overrides */
+.ui-widget {
+  font-size: 0.85em;
 }

@@ -8,6 +8,57 @@ function toggleMenu() {
   $('#checks-menu').slideToggle();
 }
 
+function gist() {
+  var code = $('#code').text();
+  if (typeof(code) == 'string' && $.trim(code).length != 0) {
+    var data = {
+      "description": "Validated by puppetlinter.com",
+      "public": true,
+      "files": {
+        "init.pp": {
+          "content": code
+        }
+      }
+    }
+    $.ajax({
+        url: 'https://api.github.com/gists',
+        type: 'POST',
+        dataType: 'json',
+        data: JSON.stringify(data)
+      })
+      .success(function(response) {
+        console.log(response);
+        popup(null, 'Gist posted to:', response['html_url']);
+      })
+      .error(function(error) {
+        console.warn("Cannot save gist: ", error);
+        popup('Gist save failed.', error);
+      });
+  }
+}
+
+function popup(title, text, url) {
+  var dialog = $('<div id="popup" />');
+  $(dialog).append( $("<p/>").text(text) );
+
+  if(url) {
+    $(dialog).append( '<ul><li id="url"></li></ul>' )
+    $(dialog).find('li#url').append( $("<a />", { href: url, text: url }) );
+  }
+
+  $(dialog).dialog({
+      modal: true,
+      title: title,
+      width: 425,
+      buttons: {
+          Ok: function () {
+              $(this).dialog("close");
+              $("#dlg").remove();
+          }
+      }
+  });
+}
+
 $( document ).ready(function() {
   toggleChecks();
 
@@ -43,4 +94,5 @@ $( document ).ready(function() {
     });
   }
 
+  $('.share_icon').tooltip();
 });
