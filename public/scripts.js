@@ -53,7 +53,7 @@ function popup(title, text, url) {
       buttons: {
           Ok: function () {
               $(this).dialog("close");
-              $("#dlg").remove();
+              $("#popup").remove();
           }
       }
   });
