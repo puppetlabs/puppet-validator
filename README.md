@@ -265,7 +265,7 @@ argument, or you might provide the full path to an `rvm` installed gem.
 If you just want to validate Puppet code you see on a website,
 
 1. drag this bookmarklet link to your bookmarks menu.
-    * <a href="javascript:var win=window.open('', 'linter', '');var form=win.document.createElement('form');form.action='http://puppetlinter.com/validate';form.method='POST';var code=win.document.createElement('textarea');code.name='code';code.value=window.getSelection().toString();form.appendChild(code);win.document.body.appendChild(form);form.submit();">Validate Puppet Code</a>
+    * [javascript:var win=window.open('', 'linter', '');var form=win.document.createElement('form');form.action='http://puppetlinter.com/validate';form.method='POST';var code=win.document.createElement('textarea');code.name='code';code.value=window.getSelection().toString();form.appendChild(code);win.document.body.appendChild(form);form.submit();](Validate Puppet Code)
 1. Highlight some code on a webpage.
 1. Click your bookmarklet link.
 
