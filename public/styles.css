@@ -130,13 +130,6 @@ pre[class*="language-"] {
     margin-bottom: 1em;
   }
 
-.button { padding: 4px 8px; }
-
-.button:hover {
-  background-color: #efefef;
-  border-color: #bbb;
-}
-
 .info {
   border: none;
   border-radius: 0;

@@ -12,7 +12,6 @@
   <form action="/validate" method="post">
     <div class="entry">
       <textarea name="code" id="code" cols="65" rows="25"></textarea>
-      <input type="submit" value="Validate" id="validate">
       Puppet version
       <select id="versions">
         <% version = @versions.shift %><option value='/'><%= version %></option>
@@ -20,8 +19,7 @@
         <option><%= version %></option>
         <% end %>
       </select>
-      <label><input type="checkbox" name="lint" id="lint" onchange="toggleChecks();">Include <code>puppet-lint</code> style checks.</label>
-      <a class="button" href="javascript:toggleMenu();">customize &#9662;</a>
+      <label><input type="checkbox" name="lint" id="lint" onchange="javascript:toggleMenu();">Include <code>puppet-lint</code> style checks.</label>
       <fieldset id="checks-menu" class="menu">
         <legend>Enabled Lint Checks</legend>
         <ul id="checks">
@@ -32,6 +30,8 @@
           <% end %>
         </ul>
       </fieldset>
+      <br>
+      <input type="submit" value="Validate" id="validate">
     </div>
   </form>
   <p class="info">

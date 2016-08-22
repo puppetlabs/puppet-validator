@@ -1,10 +1,4 @@
 function toggleChecks() {
-  var enabled = $('#lint').is(":checked");
-
-  $('#checks input').attr('disabled', ! enabled);
-}
-
-function toggleMenu() {
   $('#checks-menu').slideToggle();
 }
 
