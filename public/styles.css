@@ -1,157 +1,165 @@
-body {
-  min-width: 690px;
-  padding: 0 2em;
+@font-face {
+  font-family: "Calibre Web","Helvetica Neue",Helvetica,Arial,sans-serif;
 }
+
+body {
+  margin: 0 auto;
+  padding: 0 2em;
+  font-family: 'Calibre Web',Helvetica,Tahoma,Arial,sans-serif;
+  color: #222222;
+}
+
+a {
+  color: #ffae1a;
+  text-decoration: none;
+}
+
+input[type="submit"] {
+  font-size: .9em;
+  color: #fff;
+  line-height: 1.1em;
+  display: inline-block;
+  width: auto;
+  margin: 16px 0 0 0 ;
+  padding: 12px 16px;
+  border: 2px solid #ffae1a;
+  background-color: #ffae1a;
+}
+
+fieldset {
+  border: none;
+  background-color: #fafafa;
+}
+
+legend { font-weight: bold; }
 
 /* keeps the tooltip from clipping to the pre */
 pre[class*="language-"] {
   overflow: visible;
 }
-div.line-highlight {
+
+.line-highlight {
   /* Cannot use opacity, because that affects tooltip children as well */
   background-color: rgba(255, 181, 181, 0.25);
-  color: black;
   font-weight: bold;
 }
-div.line-highlight.with-tooltip {
-  background-color: rgba(255, 255, 0, 0.25);
-  pointer-events: auto;
-}
-  div.line-highlight.with-tooltip .marker {
-    width: 0px;
-    height: 0px;
-    border-top: 0.5em solid #000;
-    border-left: 0.5em solid transparent;
-    position: absolute;
-    top: 0;
-    right: 0;
+  .line-highlight.with-tooltip {
+    background-color: rgba(255, 255, 0, 0.25);
+    pointer-events: auto;
   }
-  div.line-highlight.with-tooltip .line-highlight-tooltip {
-    position: absolute;
-    top: -1.75em;
-    right: 0;
-    background-color: #aaccaa;
-    border: 1px solid black;
-    border-radius: 5px;
-    padding: 0 3px;
-    display: none;
-  }
-  div.line-highlight.with-tooltip:hover .line-highlight-tooltip {
-    display: block;
-  }
+    .line-highlight.with-tooltip .marker {
+      width: 0px;
+      height: 0px;
+      border-top: 0.5em solid #222222;
+      border-left: 0.5em solid transparent;
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+    .line-highlight.with-tooltip .line-highlight-tooltip {
+      position: absolute;
+      top: -1.75em;
+      right: 0;
+      background-color: #aaccaa;
+      border: 1px solid #222222;
+      border-radius: 5px;
+      padding: 0 3px;
+      display: none;
+    }
+    .line-highlight.with-tooltip:hover .line-highlight-tooltip {
+      display: block;
+    }
 
-.results {
-  width: 65%;
-  border: 1px solid black;
-  border-radius: 0.25em;
-  padding: 0.5em;
-  margin: 0 auto;
+.menu {
+  display: none;
+  border-left: 5px solid #dedede;
 }
-  .results legend {
-    text-align: right;
-    padding: 3px;
-    background-color: #dedede;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+  .menu legend {
+    position: relative;
+    top: 1em;
   }
-  .results.success {
-    background-color: #61ff6e;
-  }
-  .results.fail {
-    background-color: #ffb6b6;
-  }
-
-  .results p {
+  .menu ul {
+    list-style-type: none;
+    padding: 1em 0 0 0;
     margin: 0;
-  }
-  .results img.share_icon {
-    float: right;
-    cursor: pointer;
-  }
-  .results hr {
-    clear: both;
-  }
-  .results div.row:first-of-type {
-    margin-top: 0.5em;
+    -moz-column-count: 2;
+    -webkit-column-count: 2;
+    column-count: 2;
   }
 
-  .results span.label {
-    width: 7em;
-    font-weight: bold;
-    display: inline-block;
-    text-align: right;
-    padding-right: 0.5em;
-  }
+.results legend {
+  text-align: right;
+  padding: 3px;
+}
+.results.success { border-left: 5px solid #00D87B; }
+.results.fail {    border-left: 5px solid #D63700; }
 
-div.links {
+.results p { margin-top: 0; }
+
+.results .share_icon {
+  float: right;
+  cursor: pointer;
+}
+  .results .share_icon:after { clear: both; }
+
+.results .label {
+  width: 7em;
+  font-weight: bold;
+  display: inline-block;
+  text-align: right;
+  padding-right: 0.5em;
+}
+
+.links {
   margin: 1em auto;
   padding: 0.5em;
-  border-top: 1px solid black;
+  border-top: 1px solid #222222;
   text-align: center;
 }
-  div.links a {
-    margin: 0.5em;
-  }
+  .links a { margin: 0.5em; }
 
-div.entry {
-  width: 80%;
+.entry {
   margin: 0 auto;
 }
-  div.entry textarea {
+  .entry textarea {
     width: 100%;
     font-family: monospace;
+    font-size: 1em;
+    background: #222222;
+    color: #f2f2f2;
+    margin-bottom: 1em;
   }
 
-input#validate,
-select#versions {
-  margin-right: 2em;
-}
+.button { padding: 4px 8px; }
 
-a.button {
-  font-size: small;
-  background-color: #fff;
-  padding: 0 2px;
-  border: 1px solid #fff;
-  border-radius: 3px;
-  text-decoration: none;
-}
-a.button:hover {
+.button:hover {
   background-color: #efefef;
   border-color: #bbb;
 }
-fieldset.menu {
-  display: none;
-  border-radius: 0.5em;
-}
-fieldset.menu ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  -moz-column-count: 2;
-  -moz-column-gap: 20px;
-  -webkit-column-count: 2;
-  -webkit-column-gap: 20px;
-  column-count: 2;
-  column-gap: 20px;
-}
 
-p.info {
-    background: #fefefe url('info.png') no-repeat 5px 5px !important;
-    border: 1px solid #efefef;
-    padding: 0.5em;
-    padding-left: 50px;
-    width: 65%;
-    margin: 0 auto;
-    -moz-border-radius: 0.5em;
-    -webkit-border-radius: 0.5em;
-    -khtml-border-radius: 0.5em;
-    border-radius: 0.5em;
-}
-p.info:first-line {
-    font-weight: bold;
+.info {
+  border: none;
+  border-radius: 0;
+  border-left: 5px solid #ffae1a;
+  border-bottom: 2px solid #ccc;
+  background-color: #fafafa;
+  padding: 1em;
+  line-height: 1.2em;
 }
 
 /* jquery UI overrides */
 .ui-widget {
   font-size: 0.85em;
+}
+
+#validate,
+#versions {
+  margin-right: 2em;
+}
+
+@media (min-width: 960px) {
+  body {
+    max-width: 960px;
+    padding: 0;
+  }
 }
