@@ -1,7 +1,7 @@
 function toggleChecks() {
-  var enabled = $('input#lint').is(":checked");
+  var enabled = $('#lint').is(":checked");
 
-  $('ul#checks input').attr('disabled', ! enabled);
+  $('#checks input').attr('disabled', ! enabled);
 }
 
 function toggleMenu() {
@@ -84,11 +84,11 @@ $( document ).ready(function() {
       }
   });
 
-  if ($('select#versions option').length == 1) {
+  if ($('#versions option').length == 1) {
     $('select#versions').attr('disabled', true);
   }
   else {
-    $('select#versions').change(function() {
+    $('#versions').change(function() {
       var action = ('/' + $( this ).val() + '/validate').replace(/^\/+/, '/');
       $('form').attr('action', action );
     });
