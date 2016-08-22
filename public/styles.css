@@ -118,17 +118,14 @@ pre[class*="language-"] {
 }
   .links a { margin: 0.5em; }
 
-.entry {
-  margin: 0 auto;
+.entry textarea {
+  width: 100%;
+  font-family: monospace;
+  font-size: 1em;
+  background: #222222;
+  color: #f2f2f2;
+  margin-bottom: 1em;
 }
-  .entry textarea {
-    width: 100%;
-    font-family: monospace;
-    font-size: 1em;
-    background: #222222;
-    color: #f2f2f2;
-    margin-bottom: 1em;
-  }
 
 .info {
   border: none;
