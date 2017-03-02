@@ -5,6 +5,9 @@ require 'puppet'
 require 'puppet/parser'
 require 'puppet-lint'
 
+require 'nokogiri'
+require 'cgi'
+
 # something like 3,000 lines of code
 MAXSIZE = 100000
 CONTEXT = 3
@@ -13,9 +16,17 @@ class PuppetValidator < Sinatra::Base
   set :logging, true
   set :strict, true
 
-  before {
+  enable :sessions
+
+  before do
     env["rack.logger"] = settings.logger if settings.logger
-  }
+
+    session[:csrf] ||= SecureRandom.hex(32)
+    response.set_cookie 'authenticity_token', {
+      :value   => session[:csrf],
+      :expires => Time.now + (60 * 60 * 24),
+    }
+  end
 
   def initialize(app=nil)
     super(app)
@@ -68,6 +79,15 @@ class PuppetValidator < Sinatra::Base
     logger.info "Validating code from #{request.ip}."
     logger.debug "validating #{request.ip}: #{params['code']}"
 
+    halt 403, 'Request validation failed.' unless safe?
+
+    frag = Nokogiri::HTML.fragment(params['code'])
+    unless frag.elements.empty?
+      logger.warn 'HTML code found in validation string'
+      frag.elements.each { |elem| logger.debug "HTML: #{elem.to_s}" }
+      params['code'] = CGI.escapeHTML(params['code'])
+    end
+
     if request.body.size <= MAXSIZE
       result = validate params['code']
       lint   = lint(params['code'], params['checks']) if params['lint'] == 'on'
@@ -108,6 +128,15 @@ class PuppetValidator < Sinatra::Base
   end
 
   helpers do
+
+    def safe?
+      if session[:csrf] == params['_csrf'] && session[:csrf] == request.cookies['authenticity_token']
+        true
+      else
+        logger.warn 'CSRF attempt detected.'
+        false
+      end
+    end
 
     def validate(data)
       begin

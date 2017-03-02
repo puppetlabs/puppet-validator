@@ -10,6 +10,7 @@
   <h1>Puppet Code Validator</h1>
   <p>Paste Puppet code into the following textbox and check it for validity.</p>
   <form action="/validate" method="post">
+    <input name="_csrf", type="hidden" value="<%= session[:csrf] %>" />
     <div class="entry">
       <textarea name="code" id="code" cols="65" rows="25"></textarea>
       <input type="submit" value="Validate" id="validate">
