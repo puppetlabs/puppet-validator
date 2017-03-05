@@ -21,11 +21,13 @@ class PuppetValidator < Sinatra::Base
   before do
     env["rack.logger"] = settings.logger if settings.logger
 
-    session[:csrf] ||= SecureRandom.hex(32)
-    response.set_cookie 'authenticity_token', {
-      :value   => session[:csrf],
-      :expires => Time.now + (60 * 60 * 24),
-    }
+    if settings.csrf
+      session[:csrf] ||= SecureRandom.hex(32)
+      response.set_cookie 'authenticity_token', {
+        :value   => session[:csrf],
+        :expires => Time.now + (60 * 60 * 24),
+      }
+    end
   end
 
   def initialize(app=nil)
@@ -130,6 +132,7 @@ class PuppetValidator < Sinatra::Base
   helpers do
 
     def safe?
+      return true unless settings.csrf
       if session[:csrf] == params['_csrf'] && session[:csrf] == request.cookies['authenticity_token']
         true
       else

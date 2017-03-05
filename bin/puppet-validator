@@ -10,6 +10,7 @@ options = {
   :host           => '0.0.0.0',
   :bind           => '0.0.0.0',
   :root           => gemroot,
+  :csrf           => false,
 }
 logfile  = $stderr
 loglevel = Logger::WARN
@@ -43,6 +44,10 @@ optparse = OptionParser.new { |opts|
 
     opts.on("-t THEMEDIR", "--theme THEMEDIR", "Path to the theme directory.") do |arg|
         options[:root] = arg
+    end
+
+    opts.on("-x", "--csrf", "Protect from cross site request forgery. Requires code to be submitted for validation via the webpage.") do
+        options[:csrf] = true
     end
 
     opts.separator('')
