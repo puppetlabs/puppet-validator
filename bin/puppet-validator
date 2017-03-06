@@ -11,6 +11,7 @@ options = {
   :bind           => '0.0.0.0',
   :root           => gemroot,
   :csrf           => false,
+  :graph          => false,
 }
 logfile  = $stderr
 loglevel = Logger::WARN
@@ -48,6 +49,10 @@ optparse = OptionParser.new { |opts|
 
     opts.on("-x", "--csrf", "Protect from cross site request forgery. Requires code to be submitted for validation via the webpage.") do
         options[:csrf] = true
+    end
+
+    opts.on("-g", "--graph", "Generate relationship graphs from validated code. Requires `graphviz` to be installed.") do
+        options[:graph] = true
     end
 
     opts.separator('')

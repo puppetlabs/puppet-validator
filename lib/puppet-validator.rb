@@ -5,6 +5,7 @@ require 'puppet'
 require 'puppet/parser'
 require 'puppet-lint'
 
+require 'graphviz'
 require 'nokogiri'
 require 'cgi'
 
@@ -203,7 +204,7 @@ class PuppetValidator < Sinatra::Base
     end
 
     def rendered_dot(code)
-      require 'graphviz'
+      return unless settings.graph
 
       begin
         node    = Puppet::Node.indirection.find(Puppet[:node_name_value])

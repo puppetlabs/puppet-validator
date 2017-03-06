@@ -26,7 +26,7 @@
         </select>
         <label><input type="checkbox" name="lint" id="lint" onchange="toggleChecks();">Include <code>puppet-lint</code> style checks.</label>
         <a id="customize" class="button" href="javascript:toggleMenu();">customize &#9662;</a>
-        <label><input type="checkbox" name="relationships" id="relationships">Show relationships.</label>
+        <% if settings.graph %><label><input type="checkbox" name="relationships" id="relationships">Show relationships.</label><% end %>
       </div>
       <fieldset id="checks-menu" class="menu">
         <legend>Enabled Lint Checks</legend>
