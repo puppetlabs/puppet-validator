@@ -33,7 +33,7 @@ class PuppetValidator < Sinatra::Base
   def initialize(app=nil)
     super(app)
 
-    Puppet.initialize_settings if Puppet.version.to_i == 3 and Puppet.settings[:confdir].nil?
+    Puppet.initialize_settings rescue nil
 
     # there must be a better way
     if settings.respond_to? :disabled_lint_checks
@@ -116,6 +116,7 @@ class PuppetValidator < Sinatra::Base
         acc.merge({item[:line] => "#{item[:kind].upcase}: #{item[:message]}"})
       end.to_json
 
+      @relationships = rendered_dot(@code) if params['relationships'] == 'on'
     else
       @message = "Submitted code size is #{request.body.size}, which is larger than the maximum size of #{MAXSIZE}."
       @status  = :fail
@@ -199,6 +200,26 @@ class PuppetValidator < Sinatra::Base
     def puppet_lint_checks
       # sanitize because reasonss
       PuppetLint.configuration.checks.map {|check| check.to_s}
+    end
+
+    def rendered_dot(code)
+      require 'graphviz'
+
+      begin
+        node    = Puppet::Node.indirection.find(Puppet[:node_name_value])
+        catalog = Puppet::Resource::Catalog.indirection.find(node.name, :use_node => node).to_ral
+        graph   = catalog.relationship_graph.to_dot
+
+        svg = GraphViz.parse_string(graph) do |graph|
+          graph[:label] = 'Resource Relationships'
+        end.output(:svg => String)
+
+      rescue => detail
+        logger.warn detail.message
+        return { :status => false, :message => detail.message }
+      end
+
+      { :status => true, :data => svg }
     end
 
   end

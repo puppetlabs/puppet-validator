@@ -40,7 +40,8 @@ div.line-highlight.with-tooltip {
     display: block;
   }
 
-.results {
+.results,
+.warning {
   width: 65%;
   border: 1px solid black;
   border-radius: 0.25em;
@@ -83,6 +84,13 @@ div.line-highlight.with-tooltip {
     padding-right: 0.5em;
   }
 
+.relationships {
+  text-align: center;
+}
+.warning {
+  background-color: #ffb6b6;
+}
+
 div.links {
   margin: 1em auto;
   padding: 0.5em;
@@ -101,9 +109,13 @@ div.entry {
     width: 100%;
     font-family: monospace;
   }
+div.row {
+  text-align: center;
+}
 
 input#validate,
-select#versions {
+select#versions,
+a#customize {
   margin-right: 2em;
 }
 
