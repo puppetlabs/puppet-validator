@@ -29,7 +29,11 @@ Options:
                                         /var/log/puppet-validator if no filename is passed.
     -p, --port PORT                  Port to listen on. Defaults to 9000.
     -t, --theme THEMEDIR             Path to the theme directory.
-
+    -x, --csrf                       Protect from cross site request forgery. Requires code to be
+                                        submitted for validation via the webpage.
+    -g, --graph                      Generate relationship graphs from validated code. Requires
+                                        `graphviz` to be installed.
+    
     -h, --help                       Displays this help
 
 #### Integrating with Middleware
@@ -80,7 +84,22 @@ logger.level = Logger::WARN
 PuppetValidator.set :puppet_versions, Dir.glob('*').select {|f| File.symlink? f and File.readlink(f) == '.' }
 PuppetValidator.set :root, File.dirname(__FILE__)
 PuppetValidator.set :logger, logger
+
+# List out the lint checks you want disabled. By default, this will enable
+#   all installed checks. puppet-lint --help will list known checks.
+#
 PuppetValidator.set :disabled_lint_checks, ['80chars']
+
+# Protect from cross site request forgery. With this set, code may be
+#   submitted for validation by the website only.
+#
+# Note: This will currently break multiple version validation.
+PuppetValidator.set :csrf, false
+
+# Provide the option to generate relationship graphs from validated code.
+#   This requires that the `graphviz` package be installed.
+#
+PuppetValidator.set :graph, false
 
 run PuppetValidator
 ```
