@@ -40,11 +40,19 @@
       </fieldset>
     </div>
   </form>
-  <p class="info">
-    Be aware that this <em>only validates syntax</em>. It will not compile or
-    enforce a catalog, which means that there are many mistakes that it cannot
-    identify. See <a href="/testing.html">more information on testing and
-    validating Puppet code.</a>
-  </p>
+  <div class="info">
+    <p><strong>Be aware that valid syntax does not mean you have valid code.</strong></p>
+    <p>
+      The validator <em>only validates syntax</em> and doesn't actually compile or enforce
+      a catalog. This means that there are many mistakes that it will not identify. See
+      <a href="/testing.html">more information</a> on testing and validating Puppet code.
+    </p>
+    <p>
+      If you show relationships, then we'll try to compile an abbreviated catalog. This
+      won't use any facts, and won't know how to compile non-core resource types. See
+      <a href="/relationships.html">more information</a> on building a self-contained
+      catalog in order to generate a dependency graph.
+    </p>
+  </div>
 </body>
 </html>

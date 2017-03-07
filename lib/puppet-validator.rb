@@ -207,16 +207,31 @@ class PuppetValidator < Sinatra::Base
       return unless settings.graph
 
       begin
+        Puppet::Node::Facts.indirection.terminus_class = :memory
+        Puppet::Node.indirection.cache_class = nil
         node    = Puppet::Node.indirection.find(Puppet[:node_name_value])
-        catalog = Puppet::Resource::Catalog.indirection.find(node.name, :use_node => node).to_ral
-        graph   = catalog.relationship_graph.to_dot
+        catalog = Puppet::Resource::Catalog.indirection.find(node.name, :use_node => node)
+
+        catalog.remove_resource(catalog.resource("Stage", :main))
+        catalog.remove_resource(catalog.resource("Class", :settings))
+
+        graph   = catalog.to_ral.relationship_graph.to_dot
 
         svg = GraphViz.parse_string(graph) do |graph|
           graph[:label] = 'Resource Relationships'
+
+          graph.each_node do |name, node|
+            next unless name.start_with? 'Whit'
+            newname = name.dup
+            newname.sub!('Admissible_class', 'Starting Class')
+            newname.sub!('Completed_class', 'Finishing Class')
+            node[:label] = newname[5..-2]
+          end
         end.output(:svg => String)
 
       rescue => detail
         logger.warn detail.message
+        logger.debug detail.backtrace.join "\n"
         return { :status => false, :message => detail.message }
       end
 

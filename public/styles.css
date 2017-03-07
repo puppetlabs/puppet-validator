@@ -147,7 +147,7 @@ fieldset.menu ul {
   column-gap: 20px;
 }
 
-p.info {
+.info {
     background: #fefefe url('info.png') no-repeat 5px 5px !important;
     border: 1px solid #efefef;
     padding: 0.5em;
@@ -158,9 +158,6 @@ p.info {
     -webkit-border-radius: 0.5em;
     -khtml-border-radius: 0.5em;
     border-radius: 0.5em;
-}
-p.info:first-line {
-    font-weight: bold;
 }
 
 /* jquery UI overrides */
