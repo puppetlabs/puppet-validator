@@ -2,7 +2,7 @@ require 'date'
 
 Gem::Specification.new do |s|
   s.name              = "puppet-validator"
-  s.version           = '0.0.8'
+  s.version           = '0.0.9'
   s.date              = Date.today.to_s
   s.summary           = "Puppet code validator as a service"
   s.homepage          = "https://github.com/puppetlabs/puppet-validator/"
