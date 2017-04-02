@@ -35,38 +35,41 @@ class PuppetValidator < Sinatra::Base
     super(app)
 
     Puppet.initialize_settings rescue nil
+    Puppet.settings[:app_management] = true if Gem::Version.new(Puppet.version) >= Gem::Version.new('4.3.2')
 
-    # there must be a better way
-    if settings.respond_to? :disabled_lint_checks
-      # can pass in an array, a filename, or a list of checks
-      if settings.disabled_lint_checks.class == String
-        path = File.expand_path(settings.disabled_lint_checks)
-        if File.file? path
-          data = File.readlines(path).map {|line| line.chomp }
-          data.reject! {|line| line.empty? or line.start_with? '#' }
+    # set up the base environment
+    Puppet.push_context(Puppet.base_context(Puppet.settings), 'Setup for Puppet Validator') rescue nil
 
-          settings.disabled_lint_checks = data
-        else
-          settings.disabled_lint_checks = settings.disabled_lint_checks.split(',')
-        end
-      end
+    # disable as much disk access as possible
+    Puppet::Node::Facts.indirection.terminus_class = :memory
+    Puppet::Node.indirection.cache_class = nil
 
-    else
-      # this seems... gross, but I don't know a better way to make sure this
-      # option exists whether it was passed in or not.
-      def settings.disabled_lint_checks
-        []
+    # make sure that all the settings we expect are defined.
+    [:disabled_lint_checks, :puppet_versions, :csrf].each do |name|
+      next if settings.respond_to? name
+
+      settings.define_singleton_method(name) { Array.new }
+
+      settings.define_singleton_method("#{name}=") do |arg|
+        settings.define_singleton_method(name) { arg }
       end
     end
 
-    if settings.respond_to? :puppet_versions
-      # put our supported versions in reverse semver order
-      settings.puppet_versions = settings.puppet_versions.sort_by { |v| Gem::Version.new(v) }.reverse
-    else
-      def settings.puppet_versions
-        []
+    # can pass in an array, a filename, or a list of checks
+    if settings.disabled_lint_checks.class == String
+      path = File.expand_path(settings.disabled_lint_checks)
+      if File.file? path
+        data = File.readlines(path).map {|line| line.chomp }
+        data.reject! {|line| line.empty? or line.start_with? '#' }
+
+        settings.disabled_lint_checks = data
+      else
+        settings.disabled_lint_checks = settings.disabled_lint_checks.split(',')
       end
     end
+
+    # put our supported versions in reverse semver order
+    settings.puppet_versions = settings.puppet_versions.sort_by { |v| Gem::Version.new(v) }.reverse
 
   end
 
@@ -145,8 +148,6 @@ class PuppetValidator < Sinatra::Base
 
     def validate(data)
       begin
-        Puppet.settings[:app_management] = true if Gem::Version.new(Puppet.version) >= Gem::Version.new('4.3.2')
-
         Puppet[:code] = data
 
         if Puppet::Node::Environment.respond_to?(:create)
@@ -207,13 +208,13 @@ class PuppetValidator < Sinatra::Base
       return unless settings.graph
 
       begin
-        Puppet::Node::Facts.indirection.terminus_class = :memory
-        Puppet::Node.indirection.cache_class = nil
-        node    = Puppet::Node.indirection.find(Puppet[:node_name_value])
+        node    = Puppet::Node.indirection.find('validator')
         catalog = Puppet::Resource::Catalog.indirection.find(node.name, :use_node => node)
 
-        catalog.remove_resource(catalog.resource("Stage", :main))
-        catalog.remove_resource(catalog.resource("Class", :settings))
+        # These calls are failing due to an internal method not being available in 2 & 3.x. Suspect
+        # that it's related to the compiler not being set up fully?
+        catalog.remove_resource(catalog.resource("Stage", :main)) rescue nil
+        catalog.remove_resource(catalog.resource("Class", :settings)) rescue nil
 
         graph   = catalog.to_ral.relationship_graph.to_dot
 
