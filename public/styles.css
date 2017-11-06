@@ -55,9 +55,11 @@ div.line-highlight.with-tooltip {
     border: 1px solid #ccc;
     border-radius: 3px;
   }
+  textarea.validated,
   .results.success {
     background-color: #61ff6e;
   }
+  textarea.failed,
   .results.fail {
     background-color: #ffb6b6;
   }

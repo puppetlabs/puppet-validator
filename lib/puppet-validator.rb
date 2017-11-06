@@ -9,11 +9,12 @@ require 'graphviz'
 require 'nokogiri'
 require 'cgi'
 
-# something like 3,000 lines of code
-MAXSIZE = 100000
-CONTEXT = 3
+MAXSIZE = 100000  # something like 3,000 lines of code
+CONTEXT = 3       # how many lines of code around an error should we highlight?
 
 class PuppetValidator < Sinatra::Base
+  require 'puppet-validator/validators'
+
   set :logging, true
   set :strict, true
 
@@ -129,6 +130,24 @@ class PuppetValidator < Sinatra::Base
 
     erb :result
   end
+
+  #################### API endpoints ####################
+
+  post '/api/v0/validate/rspec' do
+    rspec = PuppetValidator::Validators::Rspec.new(settings.spec)
+    rspec.validate(params['code'], params['spec']).to_json
+  end
+
+#   post '/api/v0/validate/syntax' do
+#   end
+#
+#   post '/api/v0/validate/relationships' do
+#   end
+#
+#   post '/api/v0/validate/lint' do
+#   end
+
+  #######################################################
 
   not_found do
     halt 404, "You shall not pass! (page not found)\n"
