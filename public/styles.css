@@ -62,6 +62,20 @@ div.line-highlight.with-tooltip {
     background-color: #ffb6b6;
   }
 
+  form.validator {
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  form.validated {
+    background-color: #61ff6e;
+    border: 1px solid #17a423;
+  }
+  form.failed {
+    background-color: #ffb6b6;
+    border: 1px solid #981818;
+  }
+
   .results p {
     margin: 0;
   }
