@@ -24,6 +24,7 @@
         var form    = $("<form>", {
                          "action": server,
                          "method": "post",
+                          "class": "validator",
                         });
         var editor  = $("<textarea>", {
                            "name": "code",
@@ -42,34 +43,50 @@
                           "value": settings.label,
                         });
 
+        form.append(editor);
+        form.append(spec);
+        form.append(submit);
+        element.replaceWith(form);
+
+        // if we've got CodeMirror loaded, then make a pretty editor
+        if(typeof CodeMirror != 'undefined') {
+          var cmEditor = CodeMirror.fromTextArea(editor[0], {
+               lineNumbers: true,
+               smartIndent: true,
+            indentWithTabs: true,
+                      mode: 'puppet',
+          });
+        }
+
         submit.on('click', function(event){
           event.preventDefault();
 
-          var editor = $(this).siblings('textarea')
-          var code   = editor.val();
+          // propogates text to the textarea
+          if(typeof cmEditor != 'undefined') {
+            cmEditor.save();
+          }
+
+          var wrapper = $(this).parent('form');
+          var editor  = $(this).siblings('textarea')
+          var code    = editor.val();
 
           $.post(server, {code: code, spec: settings.spec}, function(data) {
             console.log(data);
             var results = jQuery.parseJSON(data);
             if(results.success) {
-              editor.addClass('validated');
-              editor.removeClass('failed');
+              wrapper.addClass('validated');
+              wrapper.removeClass('failed');
               alert('yay!');
             }
             else {
-              editor.addClass('failed');
-              editor.removeClass('validated');
+              wrapper.addClass('failed');
+              wrapper.removeClass('validated');
               alert("Failures:\n" + results.errors.join("\n"));
             }
           }).fail(function(jqXHR) {
             alert("Unknown API error:\n" + jqXHR.responseText);
           });
         });
-
-        form.append(editor);
-        form.append(spec);
-        form.append(submit);
-        element.replaceWith(form)
 
         return this;
       });

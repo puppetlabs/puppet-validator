@@ -46,6 +46,8 @@ private
     end
 
     begin
+      raise(Errno::ENOENT, "Spec path #{spec_path} does not exist") unless File.file? spec_path
+
       RSpec::Core::Runner.run([spec_path])
       writer.write(data.string)
     rescue StandardError, LoadError => e
