@@ -29,6 +29,8 @@ class PuppetValidator::Validators::Rspec
 
 private
   def run_rspec(spec_path, str, writer)
+    # Attempt to drop privileges for safety.
+    Process.euid = Etc.getpwnam('nobody').uid if Process.uid == 0
     require 'rspec/core'
 
     # rspec needs an IO object to write to. We just want it as a string...
@@ -43,6 +45,26 @@ private
     require 'rspec-puppet'
     RSpec::configure do |c|
       c.string        = str
+      c.default_facts = {
+        :ipaddress                 => '127.0.0.1',
+        :kernel                    => 'Linux',
+        :operatingsystem           => 'CentOS',
+        :operatingsystemmajrelease => '7',
+        :osfamily                  => 'RedHat',
+      }
+
+      # neuter functions that might run code on the master during compilation
+      c.before(:each) do
+        Puppet::Parser::Functions.newfunction(:generate, :type => :rvalue) { |args|
+          true
+        }
+        Puppet::Parser::Functions.newfunction(:template, :type => :rvalue) { |args|
+          args.first
+        }
+        Puppet::Parser::Functions.newfunction(:inline_template, :type => :rvalue) { |args|
+          args.first
+        }
+      end
     end
 
     begin
@@ -66,7 +88,7 @@ private
       result = JSON.parse(data)
       errors = result['examples']
                  .select  {|example| example['status'] == 'failed' }
-                 .collect {|example| example['description']        }
+                 .collect {|example| example['full_description']   }
 
       output = {
         'success' => errors.empty?,
