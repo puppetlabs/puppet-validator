@@ -52,6 +52,17 @@ class PuppetValidator::Validators::Syntax
     begin
       raise 'No Puppet environment found' if Puppet[:code].empty?
 
+      # neuter functions that might run code on the master during compilation
+      Puppet::Parser::Functions.newfunction(:generate, :type => :rvalue) { |args|
+        true
+      }
+      Puppet::Parser::Functions.newfunction(:template, :type => :rvalue) { |args|
+        args.first
+      }
+      Puppet::Parser::Functions.newfunction(:inline_template, :type => :rvalue) { |args|
+        args.first
+      }
+
       node    = Puppet::Node.indirection.find('validator')
       catalog = Puppet::Resource::Catalog.indirection.find(node.name, :use_node => node)
 
