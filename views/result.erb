@@ -37,11 +37,7 @@
     </fieldset>
     <pre data-line='<%= @highlights %>' class="line-numbers language-puppet"><code id="code" class="line-numbers language-puppet"><%= @code %></code></pre>
     <% if @relationships %>
-      <% if @relationships[:status] %>
-        <div class="relationships"><%= @relationships[:data] %></div>
-      <% else %>
-        <div class="warning"><%= @relationships[:message] %></div>
-      <% end %>
+        <div class="relationships"><%= @relationships %></div>
     <% end %>
     <div class="links"><a href="javascript:history.back();">Try Again</a> &bull; <a href="/">Validate More Code</a></div>
     <div class="info">

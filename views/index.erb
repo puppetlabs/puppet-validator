@@ -18,8 +18,7 @@
       </div>
       <div class="row">
         Puppet version
-        <select id="versions">
-          <% version = @versions.shift %><option value='/'><%= version %></option>
+        <select id="versions" name="version">
           <% @versions.each do |version| %>
           <option><%= version %></option>
           <% end %>

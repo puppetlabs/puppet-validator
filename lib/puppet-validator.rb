@@ -1,11 +1,6 @@
 require 'json'
 require 'logger'
 require 'sinatra/base'
-require 'puppet'
-require 'puppet/parser'
-require 'puppet-lint'
-
-require 'graphviz'
 require 'nokogiri'
 require 'cgi'
 
@@ -14,6 +9,7 @@ CONTEXT = 3       # how many lines of code around an error should we highlight?
 
 class PuppetValidator < Sinatra::Base
   require 'puppet-validator/validators'
+  require 'puppet-validator/helpers'
 
   set :logging, true
   set :strict, true
@@ -34,16 +30,6 @@ class PuppetValidator < Sinatra::Base
 
   def initialize(app=nil)
     super(app)
-
-    Puppet.initialize_settings rescue nil
-    Puppet.settings[:app_management] = true if Gem::Version.new(Puppet.version) >= Gem::Version.new('4.3.2')
-
-    # set up the base environment
-    Puppet.push_context(Puppet.base_context(Puppet.settings), 'Setup for Puppet Validator') rescue nil
-
-    # disable as much disk access as possible
-    Puppet::Node::Facts.indirection.terminus_class = :memory
-    Puppet::Node.indirection.cache_class = nil
 
     # make sure that all the settings we expect are defined.
     [:disabled_lint_checks, :puppet_versions, :csrf].each do |name|
@@ -69,83 +55,108 @@ class PuppetValidator < Sinatra::Base
       end
     end
 
-    # put our supported versions in reverse semver order
-    settings.puppet_versions = settings.puppet_versions.sort_by { |v| Gem::Version.new(v) }.reverse
-
+    # put all installed Puppet versions in reverse semver order
+    #settings.puppet_versions = settings.puppet_versions.sort_by { |v| Gem::Version.new(v) }.reverse
+    settings.puppet_versions = Gem::Specification.all.select {|g| g.name == 'puppet' }.collect {|g| g.version.to_s }
   end
 
   get '/' do
-    @versions = [Puppet.version] + settings.puppet_versions
+    @versions = settings.puppet_versions
     @disabled = settings.disabled_lint_checks
-    @checks   = puppet_lint_checks
+    # loads lint into global namespace, but I don't see an alternative
+    @checks   = PuppetValidator::Validators::Lint.all_checks
 
     erb :index
   end
 
+  # The all-in-one blob that renders via an erb page
   post '/validate' do
     logger.info "Validating code from #{request.ip}."
     logger.debug "validating #{request.ip}: #{params['code']}"
 
-    halt 403, 'Request validation failed.' unless safe?
+    validate_request!
 
-    frag = Nokogiri::HTML.fragment(params['code'])
-    unless frag.elements.empty?
-      logger.warn 'HTML code found in validation string'
-      frag.elements.each { |elem| logger.debug "HTML: #{elem.to_s}" }
-      params['code'] = CGI.escapeHTML(params['code'])
-    end
+    PuppetValidator.run_in_process do
+      syntax = PuppetValidator::Validators::Syntax.new(settings, params['version'])
+      result = syntax.validate(params['code'])
 
-    if request.body.size <= MAXSIZE
-      result = validate params['code']
-      lint   = lint(params['code'], params['checks']) if params['lint'] == 'on'
-      lint ||= {} # but make sure we have a data object to iterate
-
-      @version       = Puppet.version
       @code          = params['code']
+      @version       = params['version']
       @message       = result[:message]
       @status        = result[:status] ? :success : :fail
       @line          = result[:line]
       @column        = result[:pos]
-      @lint_warnings = ! lint.empty?
 
       # initial highlighting for the potential syntax error
       if @line
-        start   = [@line - CONTEXT, 1].max
-        initial = {"#{start}-#{@line}" => nil}
+        start       = [@line - CONTEXT, 1].max
+        @highlights = {"#{start}-#{@line}" => nil}
       else
-        initial = {}
+        @highlights = {}
       end
 
       # then add all the lint warnings and tooltip
-      @highlights = lint.inject(initial) do |acc, item|
-        acc.merge({item[:line] => "#{item[:kind].upcase}: #{item[:message]}"})
-      end.to_json
+      if params['lint'] == 'on'
+        linter = PuppetValidator::Validators::Lint.new(settings)
+        lint   = linter.validate(params['code'], params['checks'])
 
-      @relationships = rendered_dot(@code) if params['relationships'] == 'on'
-    else
-      @message = "Submitted code size is #{request.body.size}, which is larger than the maximum size of #{MAXSIZE}."
-      @status  = :fail
-      logger.error @message
+        @lint_warnings = ! lint.empty?
+        @highlights    = lint.inject(@highlights) do |acc, item|
+          acc.merge({item[:line] => "#{item[:kind].upcase}: #{item[:message]}"})
+        end.to_json
+      end
+
+      if params['relationships'] == 'on' and settings.graph
+        @relationships = syntax.render!
+      end
+
+      erb :result
     end
-
-    erb :result
   end
 
-  #################### API endpoints ####################
+  ################### API v0 endpoints ###################
 
   post '/api/v0/validate/rspec' do
-    rspec = PuppetValidator::Validators::Rspec.new(settings.spec)
-    rspec.validate(params['code'], params['spec']).to_json
+    validate_request!
+
+    PuppetValidator.run_in_process do
+      rspec = PuppetValidator::Validators::Rspec.new(settings)
+      rspec.validate(params['code'], params['spec']).to_json
+    end
   end
 
-#   post '/api/v0/validate/syntax' do
-#   end
-#
-#   post '/api/v0/validate/relationships' do
-#   end
-#
-#   post '/api/v0/validate/lint' do
-#   end
+  post '/api/v0/validate/syntax' do
+    validate_request!
+
+    PuppetValidator.run_in_process do
+      syntax = PuppetValidator::Validators::Syntax.new(settings)
+      syntax.validate(params['code']).to_json
+    end
+  end
+
+  post '/api/v0/validate/relationships' do
+    validate_request!
+    halt 403, 'Graph generation disabled.' unless settings.graph
+
+    PuppetValidator.run_in_process do
+      syntax = PuppetValidator::Validators::Syntax.new(settings)
+
+      # need to prebuild the catalog first
+      results = syntax.validate(params['code'])
+      # return either an SVG or the error message
+      results[:status] ? syntax.render! : results[:message]
+    end
+
+  end
+
+  post '/api/v0/validate/lint' do
+    validate_request!
+
+    PuppetValidator.run_in_process do
+      linter = PuppetValidator::Validators::Lint.new(settings)
+      linter.validate(params['code']).to_json
+    end
+  end
 
   #######################################################
 
@@ -155,107 +166,35 @@ class PuppetValidator < Sinatra::Base
 
   helpers do
 
-    def safe?
+    def validate_request!
+      csrf_safe!
+      check_size_limit!
+      sanitize_code!
+    end
+
+    def csrf_safe!
       return true unless settings.csrf
       if session[:csrf] == params['_csrf'] && session[:csrf] == request.cookies['authenticity_token']
         true
       else
         logger.warn 'CSRF attempt detected.'
-        false
+        halt 403, 'Request validation failed.'
       end
     end
 
-    def validate(data)
-      begin
-        Puppet[:code] = data
-
-        if Puppet::Node::Environment.respond_to?(:create)
-          validation_environment = Puppet::Node::Environment.create(:production, [])
-          validation_environment.check_for_reparse
-        else
-          validation_environment = Puppet::Node::Environment.new(:production)
-        end
-
-        validation_environment.known_resource_types.clear
-
-        {:status => true, :message => 'Syntax OK'}
-      rescue => detail
-        logger.warn detail.message
-        err = {:status => false, :message => detail.message}
-        err[:line] = detail.line if detail.methods.include? :line
-        err[:pos]  = detail.pos  if detail.methods.include? :pos
-        err
+    def check_size_limit!
+      if request.body.size > MAXSIZE
+        halt 403, "Submitted code size is #{request.body.size}, which is larger than the maximum size of #{MAXSIZE}."
       end
     end
 
-    def lint(data, checks=nil)
-      begin
-        if checks
-          logger.info "Disabling checks: #{(puppet_lint_checks - checks).inspect}"
-
-          checks.each do |check|
-            PuppetLint.configuration.send("enable_#{check}")
-          end
-
-          (puppet_lint_checks - checks).each do |check|
-            PuppetLint.configuration.send("disable_#{check}")
-          end
-        else
-          logger.info "Disabling checks: #{settings.disabled_lint_checks.inspect}"
-
-          settings.disabled_lint_checks.each do |check|
-            PuppetLint.configuration.send("disable_#{check}")
-          end
-        end
-
-        linter = PuppetLint.new
-        linter.code = data
-        linter.run
-        linter.print_problems
-      rescue => detail
-        logger.warn detail.message
-        nil
+    def sanitize_code!
+      frag = Nokogiri::HTML.fragment(params['code'])
+      unless frag.elements.empty?
+        logger.warn 'HTML code found in validation string'
+        frag.elements.each { |elem| logger.debug "HTML: #{elem.to_s}" }
+        params['code'] = CGI.escapeHTML(params['code'])
       end
-    end
-
-    def puppet_lint_checks
-      # sanitize because reasonss
-      PuppetLint.configuration.checks.map {|check| check.to_s}
-    end
-
-    def rendered_dot(code)
-      return unless settings.graph
-
-      begin
-        node    = Puppet::Node.indirection.find('validator')
-        catalog = Puppet::Resource::Catalog.indirection.find(node.name, :use_node => node)
-
-        # These calls are failing due to an internal method not being available in 2 & 3.x. Suspect
-        # that it's related to the compiler not being set up fully?
-        catalog.remove_resource(catalog.resource("Stage", :main)) rescue nil
-        catalog.remove_resource(catalog.resource("Class", :settings)) rescue nil
-
-        graph   = catalog.to_ral.relationship_graph.to_dot
-
-        svg = GraphViz.parse_string(graph) do |graph|
-          graph[:label] = 'Resource Relationships'
-
-          graph.each_node do |name, node|
-            next unless name.start_with? 'Whit'
-            newname = name.dup
-            newname.sub!('Admissible_class', 'Starting Class')
-            newname.sub!('Completed_class', 'Finishing Class')
-            node[:label] = newname[5..-2]
-          end
-        end.output(:svg => String)
-
-      rescue => detail
-        logger.warn detail.message
-        logger.debug detail.backtrace.join "\n"
-        return { :status => false, :message => detail.message }
-      end
-
-      { :status => true, :data => svg }
     end
 
   end

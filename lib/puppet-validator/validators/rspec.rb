@@ -1,36 +1,16 @@
 class PuppetValidator::Validators::Rspec
 
-  def initialize(spec)
-    @spec_dir = spec
+  def initialize(settings)
+    @logger   = settings.logger
+    @spec_dir = settings.spec
   end
 
   def validate(str, spec)
-    # rspec defines a crapton of global information and doesn't clean up well
-    # between runs. This means that there are global objects that leak and chew
-    # up memory. To counter that, we fork a process to run the spec test.
-    reader, writer = IO.pipe
-    output = nil
-
-    if fork
-      writer.close
-      output = parse_output(reader.read)
-      reader.close
-      Process.wait
-    else
-      reader.close
-      run_rspec("#{@spec_dir}/#{spec}.rb", str, writer)
-      writer.close
-      # if we fire any at_exit hooks, Sinatra has a kitten
-      exit!
-    end
-
-    output
+    run_rspec("#{@spec_dir}/#{spec}.rb", str)
   end
 
 private
-  def run_rspec(spec_path, str, writer)
-    # Attempt to drop privileges for safety.
-    Process.euid = Etc.getpwnam('nobody').uid if Process.uid == 0
+  def run_rspec(spec_path, str)
     require 'rspec/core'
 
     # rspec needs an IO object to write to. We just want it as a string...
@@ -71,15 +51,16 @@ private
       raise(Errno::ENOENT, "Spec path #{spec_path} does not exist") unless File.file? spec_path
 
       RSpec::Core::Runner.run([spec_path])
-      writer.write(data.string)
+      parse_output(data.string)
+
     rescue StandardError, LoadError => e
-      writer.write({
-        'examples' => [
-          {
-            'status'      => 'failed',
-            'description' => "Error running spec test: #{e.message}",
-          }
-        ]}.to_json)
+      @logger.error e.message
+      @logger.debug e.backtrace
+
+      {
+        'success' => false,
+        'errors' => ["Unknown validator error: #{e.message}"],
+      }.to_json
     end
   end
 
@@ -97,9 +78,10 @@ private
     rescue => e
       output = {
         'success' => false,
-        'errors' => ["Unknown validator error: #{e.message}"],
+        'errors' => ["Unparseable RSpec output: #{e.message}"],
       }
-      puts e.backtrace
+      @logger.error e.message
+      @logger.debug e.backtrace
     end
 
     output
