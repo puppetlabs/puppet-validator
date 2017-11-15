@@ -1,5 +1,4 @@
 class PuppetValidator
-
   # rspec defines a crapton of global information and doesn't clean up well
   # between runs. This means that there are global objects that leak and chew
   # up memory. To counter that, we fork a process to run the spec test.
@@ -18,9 +17,16 @@ class PuppetValidator
       reader.close
       Process.wait
     else
-      reader.close
-      writer.write(yield)
-      writer.close
+      begin
+        reader.close
+        writer.write(yield)
+        writer.close
+      rescue StandardError, LoadError => e
+        settings.logger.error e.message
+        settings.logger.debug e.backtrace.join "\n"
+        writer.write e.message
+      end
+
       # if we fire any at_exit hooks, Sinatra has a kitten
       exit!
     end
