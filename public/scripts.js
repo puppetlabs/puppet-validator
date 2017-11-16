@@ -62,27 +62,48 @@ function popup(title, text, url) {
 $( document ).ready(function() {
   toggleChecks();
 
-  $("textarea#code").keydown(function(e) {
-      if(e.keyCode === 9) { // tab was pressed
-          // get caret position/selection
-          var start = this.selectionStart;
-          var end = this.selectionEnd;
+  // don't fail if the theme doesn't load codemirror
+  if(typeof CodeMirror != 'undefined') {
+    var textbox = $("textarea#code")[0]
+    var editor  = CodeMirror.fromTextArea(textbox, {
+         lineNumbers: true,
+         smartIndent: true,
+      indentWithTabs: true,
+                mode: 'puppet',
+    });
 
-          var $this = $(this);
-          var value = $this.val();
+    $("input#validate").on('click', function(event){
+      event.preventDefault();
 
-          // set textarea value to: text before caret + tab + text after caret
-          $this.val(value.substring(0, start)
-                      + "\t"
-                      + value.substring(end));
+      // propogates text to the textarea
+      editor.save();
 
-          // put caret at right position again (add one for the tab)
-          this.selectionStart = this.selectionEnd = start + 1;
+      $(this).closest('form').submit();
+    });
+  }
+  else {
+    $("textarea#code").keydown(function(e) {
+        if(e.keyCode === 9) { // tab was pressed
+            // get caret position/selection
+            var start = this.selectionStart;
+            var end = this.selectionEnd;
 
-          // prevent the loss of focus
-          e.preventDefault();
-      }
-  });
+            var $this = $(this);
+            var value = $this.val();
+
+            // set textarea value to: text before caret + tab + text after caret
+            $this.val(value.substring(0, start)
+                        + "\t"
+                        + value.substring(end));
+
+            // put caret at right position again (add one for the tab)
+            this.selectionStart = this.selectionEnd = start + 1;
+
+            // prevent the loss of focus
+            e.preventDefault();
+        }
+    });
+  }
 
   if ($('select#versions option').length == 1) {
     $('select#versions').attr('disabled', true);

@@ -58,6 +58,9 @@ class PuppetValidator < Sinatra::Base
     # put all installed Puppet versions in reverse semver order
     #settings.puppet_versions = settings.puppet_versions.sort_by { |v| Gem::Version.new(v) }.reverse
     settings.puppet_versions = Gem::Specification.all.select {|g| g.name == 'puppet' }.collect {|g| g.version.to_s }
+
+    settings.logger.error "Please gem install one or more Puppet versions." if settings.puppet_versions.empty?
+
   end
 
   get '/' do
@@ -106,7 +109,7 @@ class PuppetValidator < Sinatra::Base
         end.to_json
       end
 
-      if params['relationships'] == 'on' and settings.graph
+      if @status and params['relationships'] == 'on' and settings.graph
         @relationships = syntax.render!
       end
 
@@ -183,8 +186,11 @@ class PuppetValidator < Sinatra::Base
     end
 
     def check_size_limit!
-      if request.body.size > MAXSIZE
-        halt 403, "Submitted code size is #{request.body.size}, which is larger than the maximum size of #{MAXSIZE}."
+      content = request.body.read
+      request.body.rewind
+
+      if content.size > MAXSIZE
+        halt 403, "Submitted code size is #{content.size}, which is larger than the maximum size of #{MAXSIZE}."
       end
     end
 

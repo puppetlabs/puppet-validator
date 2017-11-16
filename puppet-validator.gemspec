@@ -19,10 +19,14 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("views/**/*")
   s.files            += Dir.glob("public/**/*")
   s.add_dependency      "sinatra",       "~> 1.3"
-  s.add_dependency      "puppet",        [">= 2.7", "<5.0"]
   s.add_dependency      "puppet-lint",   "~> 1.1"
   s.add_dependency      "nokogiri",      "~> 1.6", ">= 1.6.5"
   s.add_dependency      "ruby-graphviz", "~> 1.2"
+
+# We cannot actually depend on puppet, because if we do then rubygems helpfully
+# preloads it for us and then we cannot programatically require a specific version for a test.
+# s.add_dependency      "puppet"
+
   s.description       = <<-desc
     Puppet Validator is a simple web service that accepts arbitrary code submissions and
     validates it the way `puppet parser validate` would. It can optionally also

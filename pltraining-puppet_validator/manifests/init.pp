@@ -3,7 +3,6 @@ class puppet_validator (
   $port        = '80',
   $path        = '/var/www/puppet-validator',
   $versions    = undef,
-  $rubyversion = 'ruby-1.9.3-p551',
 ) {
   include epel
 
@@ -44,14 +43,11 @@ class puppet_validator (
     creates => "${path}/config.ru",
     path    => '/bin:/usr/bin/:/usr/local/bin',
     notify  => Class['apache'],
+    require => Package['puppet-validator'],
   }
 
-  # lollercopter. This is to avoid binary collisions with PE
-  package { ['puppet', 'facter']:
-    ensure          => present,
-    provider        => gem,
-    install_options => { '--bindir' => '/tmp' },
-    before          => Package['puppet-validator'],
+  package { 'graphviz':
+    ensure => present,
   }
 
   package { 'puppet-validator':
@@ -68,45 +64,29 @@ class puppet_validator (
     notify => Class['apache'],
   }
 
+  # The bindir is to avoid binary collisions with PE. This must be installed
+  # prior to the validator gem, because otherwise it will be installed as a
+  # dependency and hit the /usr/local/bin/puppet symlink
   if $versions {
-    include rvm
-    rvm::system_user { 'nobody': }
+    $_versions = $versions.sort.reverse.join(', ')
+    $_packages = $versions.map |$version| {
+      "puppet:${version}"
+    }.join(' ')
 
-    rvm_system_ruby { $rubyversion:
-      ensure      => 'present',
-      default_use => false,
+    # if the puppet gem is ever installed or updated manually, this will likely break
+    exec { "gem install ${_packages} --bindir /tmp --no-document":
+      path     => '/usr/local/bin:/usr/bin:/bin:/opt/puppetlabs/bin',
+      unless   => "[[ \"$(gem list ^puppet$ | tail -1)\" == \"puppet (${_versions})\" ]]",
+      provider => shell,
+      before   => Package['puppet-validator'],
     }
-
-    $versions.each |$version| {
-      rvm_gemset { "${rubyversion}@puppet${version}":
-        ensure  => present,
-        require => Rvm_system_ruby[$rubyversion];
-      }
-
-      rvm_gem { "${rubyversion}@puppet${version}/puppet":
-        ensure  => $version,
-        require => Rvm_gemset["${rubyversion}@puppet${version}"],
-      }
-
-      rvm_gem { "${rubyversion}@puppet${version}/puppet-validator":
-        ensure  => present,
-        require => Rvm_gemset["${rubyversion}@puppet${version}"],
-      }
-
-      # This symlink allows the Apache alias to work, and it's also the
-      # trigger that populates the version dropdown in the UI.
-      file { "${path}/${version}":
-        ensure => link,
-        target => '.',
-      }
-
-      # This is way tightly coupled, but I didn't see a better way.
-      # It creates a concat fragment targeted to be inserted into the vhost conf.
-      concat::fragment { "${vhostname}-puppet-validator-${version}":
-        target  => "25-${vhostname}.conf",
-        order   => 175,
-        content => template('puppet_validator/apache_vhost_puppet_validator.erb'),
-      }
+  }
+  else {
+    package { ['puppet', 'facter']:
+      ensure          => present,
+      provider        => gem,
+      install_options => { '--bindir' => '/tmp' },
+      before          => Package['puppet-validator'],
     }
   }
 
