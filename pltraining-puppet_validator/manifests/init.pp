@@ -46,6 +46,10 @@ class puppet_validator (
     require => Package['puppet-validator'],
   }
 
+  package { 'graphviz':
+    ensure => present,
+  }
+
   package { 'puppet-validator':
     ensure   => present,
     provider => gem,
