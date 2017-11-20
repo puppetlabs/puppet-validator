@@ -72,6 +72,14 @@ $( document ).ready(function() {
                 mode: 'puppet',
     });
 
+    // indent with spaces to match style guide
+    editor.setOption("extraKeys", {
+      Tab: function(cm) {
+        var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+        cm.replaceSelection(spaces);
+      }
+    });
+
     $("input#validate").on('click', function(event){
       event.preventDefault();
 
