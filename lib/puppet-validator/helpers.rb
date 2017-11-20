@@ -17,6 +17,9 @@ class PuppetValidator
       reader.close
       Process.wait
     else
+      # Attempt to drop privileges for safety.
+      Process.euid = Etc.getpwnam('nobody').uid if Process.uid == 0
+      
       begin
         reader.close
         writer.write(yield)
