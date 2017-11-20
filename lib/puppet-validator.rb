@@ -22,6 +22,7 @@ class PuppetValidator < Sinatra::Base
     if settings.csrf
       session[:csrf] ||= SecureRandom.hex(32)
       response.set_cookie 'authenticity_token', {
+        :path    => '/',
         :value   => session[:csrf],
         :expires => Time.now + (60 * 60 * 24),
       }
@@ -80,38 +81,9 @@ class PuppetValidator < Sinatra::Base
     validate_request!
 
     PuppetValidator.run_in_process do
-      syntax = PuppetValidator::Validators::Syntax.new(settings, params['version'])
-      result = syntax.validate(params['code'])
-
-      @code          = params['code']
-      @version       = params['version']
-      @message       = result[:message]
-      @status        = result[:status] ? :success : :fail
-      @line          = result[:line]
-      @column        = result[:pos]
-
-      # initial highlighting for the potential syntax error
-      if @line
-        start       = [@line - CONTEXT, 1].max
-        @highlights = {"#{start}-#{@line}" => nil}
-      else
-        @highlights = {}
-      end
-
-      # then add all the lint warnings and tooltip
-      if params['lint'] == 'on'
-        linter = PuppetValidator::Validators::Lint.new(settings)
-        lint   = linter.validate(params['code'], params['checks'])
-
-        @lint_warnings = ! lint.empty?
-        @highlights    = lint.inject(@highlights) do |acc, item|
-          acc.merge({item[:line] => "#{item[:kind].upcase}: #{item[:message]}"})
-        end.to_json
-      end
-
-      if @status and params['relationships'] == 'on' and settings.graph
-        @relationships = syntax.render!
-      end
+      @result           = validate_all
+      @result[:code]    = params['code']
+      @result[:version] = params['version']
 
       erb :result
     end
@@ -119,12 +91,11 @@ class PuppetValidator < Sinatra::Base
 
   ################### API v0 endpoints ###################
 
-  post '/api/v0/validate/rspec' do
+  post '/api/v0/validate' do
     validate_request!
 
     PuppetValidator.run_in_process do
-      rspec = PuppetValidator::Validators::Rspec.new(settings)
-      rspec.validate(params['code'], params['spec']).to_json
+      validate_all.to_json
     end
   end
 
@@ -148,6 +119,7 @@ class PuppetValidator < Sinatra::Base
       results = syntax.validate(params['code'])
       # return either an SVG or the error message
       results[:status] ? syntax.render! : results[:message]
+      results.to_json
     end
 
   end
@@ -158,6 +130,15 @@ class PuppetValidator < Sinatra::Base
     PuppetValidator.run_in_process do
       linter = PuppetValidator::Validators::Lint.new(settings)
       linter.validate(params['code']).to_json
+    end
+  end
+
+  post '/api/v0/validate/rspec' do
+    validate_request!
+
+    PuppetValidator.run_in_process do
+      rspec = PuppetValidator::Validators::Rspec.new(settings)
+      rspec.validate(params['code'], params['spec']).to_json
     end
   end
 
@@ -180,7 +161,11 @@ class PuppetValidator < Sinatra::Base
       if session[:csrf] == params['_csrf'] && session[:csrf] == request.cookies['authenticity_token']
         true
       else
-        logger.warn 'CSRF attempt detected.'
+        logger.warn 'CSRF attempt detected. Ensure that server time is correct.'
+        logger.debug "session: #{session[:csrf]}"
+        logger.debug "  param: #{params['_csrf']}"
+        logger.debug " cookie: #{request.cookies['authenticity_token']}"
+
         halt 403, 'Request validation failed.'
       end
     end
@@ -201,6 +186,44 @@ class PuppetValidator < Sinatra::Base
         frag.elements.each { |elem| logger.debug "HTML: #{elem.to_s}" }
         params['code'] = CGI.escapeHTML(params['code'])
       end
+    end
+
+    def validate_all
+      syntax = PuppetValidator::Validators::Syntax.new(settings, params['version'])
+      result = syntax.validate(params['code'])
+
+      # munge the data slightly to make it more consumable
+      result[:success] = result[:status]
+      result[:status]  = result[:status] ? :success : :fail
+      result[:column]  = result[:pos]
+
+      # initial highlighting for the potential syntax error
+      if result[:line]
+        line       = result[:line]
+        start      = [line - CONTEXT, 1].max
+        highlights = {"#{start}-#{line}" => nil}
+      else
+        highlights = {}
+      end
+
+      # then add all the lint warnings and tooltip
+      if params['lint'] == 'on'
+        linter = PuppetValidator::Validators::Lint.new(settings)
+        lint   = linter.validate(params['code'], params['checks'])
+
+        result[:lint_warnings] = ! lint.empty?
+
+        highlights = lint.inject(highlights) do |acc, item|
+          acc.merge({item[:line] => "#{item[:kind].upcase}: #{item[:message]}"})
+        end.to_json
+      end
+
+      if result[:status] and params['relationships'] == 'on' and settings.graph
+        result[:relationships] = syntax.render!
+      end
+
+      result[:highlights] = highlights
+      result
     end
 
   end
