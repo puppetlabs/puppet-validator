@@ -83,7 +83,6 @@ class PuppetValidator < Sinatra::Base
     PuppetValidator.run_in_process do
       @result           = validate_all
       @result[:code]    = params['code']
-      @result[:version] = params['version']
 
       erb :result
     end
@@ -119,7 +118,6 @@ class PuppetValidator < Sinatra::Base
       results = syntax.validate(params['code'])
       # return either an SVG or the error message
       results[:status] ? syntax.render! : results[:message]
-      results.to_json
     end
 
   end
@@ -193,32 +191,50 @@ class PuppetValidator < Sinatra::Base
       result = syntax.validate(params['code'])
 
       # munge the data slightly to make it more consumable
-      result[:success] = result[:status]
-      result[:status]  = result[:status] ? :success : :fail
-      result[:column]  = result[:pos]
+      result[:version]  = params['version']
+      result[:success]  = result[:status]
+      result[:status]   = result[:status] ? :success : :fail
+      result[:column]   = result[:pos]
+      result[:messages] = []
 
       # initial highlighting for the potential syntax error
       if result[:line]
         line       = result[:line]
         start      = [line - CONTEXT, 1].max
         highlights = {"#{start}-#{line}" => nil}
+
+        result[:messages] << {
+            :from   => [line - CONTEXT, 0],
+              :to   => [line - 1, result[:column]],
+          :message  => result[:message],
+          :severity => 'error',
+        }
+
       else
         highlights = {}
       end
 
       # then add all the lint warnings and tooltip
-      if params['lint'] == 'on'
+      if params['lint']
         linter = PuppetValidator::Validators::Lint.new(settings)
         lint   = linter.validate(params['code'], params['checks'])
 
         result[:lint_warnings] = ! lint.empty?
 
         highlights = lint.inject(highlights) do |acc, item|
+          line = item[:line]-1;
+          result[:messages] << {
+                :from => [line, 0],
+                  :to => [line, 1000],
+             :message => "#{item[:kind].upcase}: #{item[:message]}",
+            :severity => 'warning'
+          }
+
           acc.merge({item[:line] => "#{item[:kind].upcase}: #{item[:message]}"})
         end.to_json
       end
 
-      if result[:status] and params['relationships'] == 'on' and settings.graph
+      if result[:status] and params['relationships'] and settings.graph
         result[:relationships] = syntax.render!
       end
 

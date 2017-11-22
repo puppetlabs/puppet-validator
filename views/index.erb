@@ -3,18 +3,30 @@
   <title>Puppet Validator</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/codemirror.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/addon/lint/lint.css">
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+  <link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="styles.css">
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/codemirror.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/mode/puppet/puppet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/addon/lint/lint.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/addon/selection/active-line.js"></script>
   <script src="scripts.js"></script>
 </head>
 <body>
   <a href="https://github.com/puppetlabs/puppet-validator"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
   <h1>Puppet Code Validator</h1>
   <p>Paste Puppet code into the following textbox and check it for validity.</p>
+
+  <fieldset id="results" class="results hidden">
+    <legend>Validated for Puppet version <span id="version"></span></legend>
+    <img id="share" class="share_icon" title="Gist this validated code..." src="gist.png" onclick="gist();" />
+    <i class="fa fa-spinner fa-pulse fa-2x" aria-hidden="true" id="spinner"></i>
+    <p id="message"></p>
+  </fieldset>
+
   <form action="/validate" method="post">
     <% if settings.csrf %><input name="_csrf", type="hidden" value="<%= session[:csrf] %>" /><% end %>
     <div class="entry">
@@ -29,9 +41,9 @@
           <option><%= version %></option>
           <% end %>
         </select>
-        <label><input type="checkbox" name="lint" id="lint" onchange="toggleChecks();">Include <code>puppet-lint</code> style checks.</label>
+        <label><input type="checkbox" name="lint" id="lint" checked="checked" onchange="toggleChecks();">Include <code>puppet-lint</code> style checks.</label>
         <a id="customize" class="button" href="javascript:toggleMenu();">customize &#9662;</a>
-        <% if settings.graph %><label><input type="checkbox" name="relationships" id="relationships">Show relationships.</label><% end %>
+        <% if settings.graph %><input type="button" name="relationships" id="relationships" value="Show relationships" onclick="showRelationships();"><% end %>
       </div>
       <fieldset id="checks-menu" class="menu">
         <legend>Enabled Lint Checks</legend>
@@ -45,7 +57,9 @@
       </fieldset>
     </div>
   </form>
+
   <div class="info">
+    <i class="fa fa-info-circle fa-3x" aria-hidden="true"></i>
     <p><strong>Be aware that valid syntax does not mean you have valid code.</strong></p>
     <p>
       The validator <em>only validates syntax</em> and doesn't actually compile or enforce
