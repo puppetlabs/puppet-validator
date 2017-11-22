@@ -79,6 +79,7 @@ class PuppetValidator < Sinatra::Base
     logger.debug "validating #{request.ip}: #{params['code']}"
 
     validate_request!
+    sanitize_code! # make code safe for re-rendering
 
     PuppetValidator.run_in_process do
       @result           = validate_all
@@ -151,7 +152,6 @@ class PuppetValidator < Sinatra::Base
     def validate_request!
       csrf_safe!
       check_size_limit!
-      sanitize_code!
     end
 
     def csrf_safe!
@@ -201,7 +201,6 @@ class PuppetValidator < Sinatra::Base
       if result[:line]
         line       = result[:line]
         start      = [line - CONTEXT, 1].max
-        highlights = {"#{start}-#{line}" => nil}
 
         result[:messages] << {
             :from   => [line - CONTEXT, 0],
@@ -209,9 +208,6 @@ class PuppetValidator < Sinatra::Base
           :message  => result[:message],
           :severity => 'error',
         }
-
-      else
-        highlights = {}
       end
 
       # then add all the lint warnings and tooltip
@@ -221,7 +217,7 @@ class PuppetValidator < Sinatra::Base
 
         result[:lint_warnings] = ! lint.empty?
 
-        highlights = lint.inject(highlights) do |acc, item|
+        lint.each do |item|
           line = item[:line]-1;
           result[:messages] << {
                 :from => [line, 0],
@@ -229,16 +225,13 @@ class PuppetValidator < Sinatra::Base
              :message => "#{item[:kind].upcase}: #{item[:message]}",
             :severity => 'warning'
           }
-
-          acc.merge({item[:line] => "#{item[:kind].upcase}: #{item[:message]}"})
-        end.to_json
+        end
       end
 
       if result[:status] and params['relationships'] and settings.graph
         result[:relationships] = syntax.render!
       end
 
-      result[:highlights] = highlights
       result
     end
 

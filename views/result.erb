@@ -1,25 +1,15 @@
 <html>
 <head>
   <title>Puppet Validator</title>
-  <link rel="stylesheet" href="prism-default.css">
-  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+  <link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-  <script src="prism.js"></script>
-  <script src="scripts.js"></script>
 </head>
   <body>
     <a href="https://github.com/puppetlabs/puppet-validator"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
     <h1>Validation Results</h1>
     <fieldset class="results <%= @result[:status] %>">
       <legend>Validated for Puppet version <%= @result[:version] %></legend>
-      <p>
-        <%= @result[:message] %>
-        <% if @result[:success] %>
-          <img class="share_icon" title="Gist this validated code..." src="gist.png" onclick="gist();" />
-        <% end %>
-      </p>
+      <p><%= @result[:message] %></p>
       <% if @result[:line] %>
         <div class="row">
           <span class="label">Line Number:</span><span class="message"><%= @result[:line] %></span>
@@ -30,17 +20,27 @@
           <span class="label">Column:</span><span class="message"><%= @result[:column] %></span>
         </div>
       <% end %>
-      <% if @result[:lint_warnings]  %>
+      <% if @result[:messages]  %>
         <hr />
-        <p>See inline <code>puppet-lint</code> warnings.</p>
+        <ul>
+          <% @result[:messages].each do |message| %>
+            <% next if message[:severity] == 'error' %>
+            <li>Line <%= message[:from].first + 1 %>: <%= message[:message] %></li>
+          <% end %>
+        </ul>
       <% end %>
     </fieldset>
-    <pre data-line='<%= @result[:highlights] %>' class="line-numbers language-puppet"><code id="code" class="line-numbers language-puppet"><%= @result[:code] %></code></pre>
+    <pre id="highlighted">
+      <% @result[:code].each_line do |line| %>
+      <code><%= line %></code>
+      <% end %>
+    </pre>
     <% if @result[:relationships] %>
         <div class="relationships"><%= @result[:relationships] %></div>
     <% end %>
-    <div class="links"><a href="javascript:history.back();">Try Again</a> &bull; <a href="/">Validate More Code</a></div>
+    <div class="links"><a href="/">Validate More Code</a></div>
     <div class="info">
+      <i class="fa fa-info-circle fa-3x" aria-hidden="true"></i>
       <p><strong>Be aware that valid syntax does not mean you have valid code.</strong></p>
       <p>
         The validator <em>only validates syntax</em> and doesn't actually compile or enforce
