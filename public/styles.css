@@ -43,11 +43,19 @@ div.line-highlight.with-tooltip {
 .results,
 .warning {
   width: 65%;
+  min-height: 3.5em;
   border: 1px solid black;
   border-radius: 0.25em;
   padding: 0.5em;
-  margin: 0 auto;
+  margin: 1em auto;
+  background-color: #fcfcfc;
+  transition: opacity 1s, background-color 1s, border: 1s;
 }
+
+  .results.hidden {
+    opacity: 0;
+  }
+
   .results legend {
     text-align: right;
     padding: 3px;
@@ -55,33 +63,21 @@ div.line-highlight.with-tooltip {
     border: 1px solid #ccc;
     border-radius: 3px;
   }
-  .results.success {
-    background-color: #61ff6e;
+  .results.validated {
+    border: 2px solid #1dd12d;
   }
-  .results.fail {
-    background-color: #ffb6b6;
-  }
-
-  form.validator {
-    padding: 1em;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-  }
-  form.validated {
-    background-color: #61ff6e;
-    border: 1px solid #17a423;
-  }
-  form.failed {
-    background-color: #ffb6b6;
-    border: 1px solid #981818;
+  .results.validated.failed {
+    border: 2px solid #981818;
   }
 
   .results p {
-    margin: 0;
+    margin: 0 3em 0 0;
   }
   .results img.share_icon {
+    display: none;
     float: right;
     cursor: pointer;
+    height: 2em;
   }
   .results hr {
     clear: both;
@@ -123,12 +119,29 @@ div.entry {
   border-radius: 0.5em;
   background-color: #f7f7f7;
 }
+
+  form.validated div.entry {
+    background-color: #f1ffe8;
+    border: 1px solid #1dd12d;
+  }
+  form.validated.failed div.entry {
+    background-color: #ffd4d4;
+    border: 1px solid #981818;
+  }
+
   div.entry textarea {
     width: 100%;
     font-family: monospace;
   }
 div.row {
   text-align: center;
+}
+
+.CodeMirror-line.CodeMirror-lint-mark-error {
+  background-color: #ffefed;
+}
+.CodeMirror-line.CodeMirror-lint-mark-warning {
+  background-color: #fff9d2;
 }
 
 input#validate,
@@ -152,21 +165,30 @@ a.button:hover {
 fieldset.menu {
   display: none;
   border-radius: 0.5em;
+  background-color: #fff;
 }
-fieldset.menu ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  -moz-column-count: 2;
-  -moz-column-gap: 20px;
-  -webkit-column-count: 2;
-  -webkit-column-gap: 20px;
-  column-count: 2;
-  column-gap: 20px;
-}
+  fieldset.menu legend {
+    background-color: #ffffff;
+    border-top: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-radius: 3px 3px 0 0;
+  }
+
+  fieldset.menu ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    -moz-column-count: 2;
+    -moz-column-gap: 20px;
+    -webkit-column-count: 2;
+    -webkit-column-gap: 20px;
+    column-count: 2;
+    column-gap: 20px;
+  }
 
 .info {
-    background: #fefefe url('info.png') no-repeat 5px 5px !important;
+    background: #fefefe;
     border: 1px solid #efefef;
     padding: 0.5em;
     padding-left: 50px;
@@ -177,6 +199,10 @@ fieldset.menu ul {
     -khtml-border-radius: 0.5em;
     border-radius: 0.5em;
 }
+  .info i.fa {
+    float: left;
+    margin-left: -45px;
+  }
 
 /* jquery UI overrides */
 .ui-widget {
