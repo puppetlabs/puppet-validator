@@ -142,7 +142,10 @@ function puppet_validator(cm, updateLinting, options) {
       wrapper.addClass('failed');
       output.addClass('failed');
       $('#share').hide();
-      editor.scrollIntoView(results['line'] - 3, results['line'] + 3);
+
+      if('line' in results) {
+        editor.scrollIntoView(results['line'] - 3, results['line'] + 3);
+      }
     }
 
     if ('messages' in results) {
@@ -169,6 +172,7 @@ function puppet_validator(cm, updateLinting, options) {
 
 $( document ).ready(function() {
   toggleChecks();
+  $('#checks-menu').hide();
 
   // don't fail if the theme doesn't load codemirror
   if(typeof CodeMirror != 'undefined') {

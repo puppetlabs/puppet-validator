@@ -3,42 +3,27 @@ body {
   padding: 0 2em;
 }
 
-/* keeps the tooltip from clipping to the pre */
-pre[class*="language-"] {
-  overflow: visible;
+/* css only line numbers for the fallback no-js results */
+pre#highlighted {
+  counter-reset: line;
+  background-color: #f7f7f7;
+  line-height: 0;
 }
-div.line-highlight {
-  /* Cannot use opacity, because that affects tooltip children as well */
-  background-color: rgba(255, 181, 181, 0.25);
-  color: black;
-  font-weight: bold;
-}
-div.line-highlight.with-tooltip {
-  background-color: rgba(255, 255, 0, 0.25);
-  pointer-events: auto;
-}
-  div.line-highlight.with-tooltip .marker {
-    width: 0px;
-    height: 0px;
-    border-top: 0.5em solid #000;
-    border-left: 0.5em solid transparent;
-    position: absolute;
-    top: 0;
-    right: 0;
+  pre#highlighted code {
+    counter-increment: line;
+    line-height: 1.25em;
   }
-  div.line-highlight.with-tooltip .line-highlight-tooltip {
-    position: absolute;
-    top: -1.75em;
-    right: 0;
-    background-color: #aaccaa;
-    border: 1px solid black;
-    border-radius: 5px;
-    padding: 0 3px;
-    display: none;
+  pre#highlighted code:before {
+    content: counter(line);
+    -webkit-user-select: none;
+    display: inline-block;
+    width: 2em;
+    border-right: 2px solid #ccc;
+    text-align: right ;
+    padding-right: 0.5em;
+    margin-right: 0.5em;
   }
-  div.line-highlight.with-tooltip:hover .line-highlight-tooltip {
-    display: block;
-  }
+
 
 .results,
 .warning {
@@ -163,7 +148,6 @@ a.button:hover {
   border-color: #bbb;
 }
 fieldset.menu {
-  display: none;
   border-radius: 0.5em;
   background-color: #fff;
 }
