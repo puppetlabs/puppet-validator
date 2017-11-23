@@ -8,6 +8,11 @@ function toggleMenu() {
   $('#checks-menu').slideToggle();
 }
 
+function loadPaste() {
+  var location = $('#location').val();
+  window.location = "/load/"+location;
+}
+
 function gist() {
   var code = $('#code').val();
   if (typeof(code) == 'string' && $.trim(code).length != 0) {
@@ -173,6 +178,16 @@ function puppet_validator(cm, updateLinting, options) {
 $( document ).ready(function() {
   toggleChecks();
   $('#checks-menu').hide();
+
+  $("input#load").on('click', function(event){
+    event.preventDefault();
+    loadPaste();
+  });
+
+  $("input#relationships").on('click', function(event){
+    event.preventDefault();
+    showRelationships();
+  });
 
   // don't fail if the theme doesn't load codemirror
   if(typeof CodeMirror != 'undefined') {

@@ -3,6 +3,8 @@ require 'logger'
 require 'sinatra/base'
 require 'nokogiri'
 require 'cgi'
+require 'uri'
+require 'open-uri'
 
 MAXSIZE = 100000  # something like 3,000 lines of code
 CONTEXT = 3       # how many lines of code around an error should we highlight?
@@ -73,19 +75,55 @@ class PuppetValidator < Sinatra::Base
     erb :index
   end
 
+  get '/load/*' do
+    location = params[:splat].first.sub(/(https?:)\/\/?/, '\1//')
+    logger.info "Loading code from: #{location}"
+
+    uri = location.downcase.start_with?('http') ? URI.parse(location) : URI.parse("https://#{location}")
+
+    case uri.host
+    when 'gist.github.com'
+      code = open("#{uri}/raw").read
+    when 'pastebin.com', 'hastebin.com'
+      code = open("#{uri.scheme}://#{uri.host}/raw#{uri.path}").read
+    else
+      logger.info "Unrecognized paste service: #{uri}"
+    end
+
+    @versions = settings.puppet_versions
+    @disabled = settings.disabled_lint_checks
+    # loads lint into global namespace, but I don't see an alternative
+    @checks   = PuppetValidator::Validators::Lint.all_checks
+    @location = location
+    @code     = sanitize_code(code)
+
+    erb :index
+  end
+
   # The all-in-one blob that renders via an erb page
   post '/validate' do
     logger.info "Validating code from #{request.ip}."
     logger.debug "validating #{request.ip}: #{params['code']}"
 
+    if params.include? 'load'
+      redirect "/load/#{params['location']}"
+    end
+
     validate_request!
     sanitize_code! # make code safe for re-rendering
 
     PuppetValidator.run_in_process do
-      @result           = validate_all
-      @result[:code]    = params['code']
+      if params.include? 'relationships' and settings.graph
+        syntax = PuppetValidator::Validators::Syntax.new(settings)
+        results = syntax.validate(params['code'])
+        results[:status] ? syntax.render! : results[:message]
 
-      erb :result
+      else
+        @result           = validate_all
+        @result[:code]    = params['code']
+
+        erb :result
+      end
     end
   end
 
@@ -178,12 +216,17 @@ class PuppetValidator < Sinatra::Base
     end
 
     def sanitize_code!
-      frag = Nokogiri::HTML.fragment(params['code'])
+      params['code'] = sanitize_code(params['code'])
+    end
+
+    def sanitize_code(code)
+      frag = Nokogiri::HTML.fragment(code)
       unless frag.elements.empty?
         logger.warn 'HTML code found in validation string'
         frag.elements.each { |elem| logger.debug "HTML: #{elem.to_s}" }
-        params['code'] = CGI.escapeHTML(params['code'])
+        code = CGI.escapeHTML(code)
       end
+      code
     end
 
     def validate_all
@@ -226,10 +269,6 @@ class PuppetValidator < Sinatra::Base
             :severity => 'warning'
           }
         end
-      end
-
-      if result[:status] and params['relationships'] and settings.graph
-        result[:relationships] = syntax.render!
       end
 
       result
