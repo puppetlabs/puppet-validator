@@ -17,7 +17,7 @@ function gist() {
   var code = $('#code').val();
   if (typeof(code) == 'string' && $.trim(code).length != 0) {
     var data = {
-      "description": "Validated by " + window.location.href,
+      "description": "Validated by " + window.location.origin + '/referer',
       "public": true,
       "files": {
         "init.pp": {

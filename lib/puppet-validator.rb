@@ -100,6 +100,10 @@ class PuppetValidator < Sinatra::Base
     erb :index
   end
 
+  get '/referer' do
+    redirect "/load/#{request.referer}"
+  end
+
   # The all-in-one blob that renders via an erb page
   post '/validate' do
     logger.info "Validating code from #{request.ip}."
