@@ -16,6 +16,7 @@ options = {
 }
 logfile  = $stderr
 loglevel = Logger::WARN
+ssl_opts = {:verify_peer => false}
 
 optparse = OptionParser.new { |opts|
     opts.banner = "Usage : puppet-validator [-p <port>] [-l [logfile]] [-t <themedir>] [-d]
@@ -60,6 +61,18 @@ optparse = OptionParser.new { |opts|
         options[:graph] = true
     end
 
+    opts.on("--ssl", "Run with SSL support. Autogenerates a self-signed certificates by default.") do
+        options[:ssl] = true
+    end
+
+    opts.on("--ssl-cert FILE", "Specify the SSL certificate you'd like use use. Pair with --ssl-key.") do |arg|
+        ssl_opts[:cert_chain_file] = arg
+    end
+
+    opts.on("--ssl-key FILE", "Specify the SSL key file you'd like use use. Pair with --ssl-cert.") do |arg|
+        ssl_opts[:private_key_file] = arg
+    end
+
     opts.separator('')
 
     opts.on("-h", "--help", "Displays this help") do
@@ -89,5 +102,24 @@ else
   logger.level     = loglevel
   options[:logger] = logger
 
-  PuppetValidator.run! options
+  if ssl_opts[:cert_chain_file] and ssl_opts[:private_key_file]
+    options[:ssl] = true
+  end
+
+  # These options should either both be nil or both be Strings
+  unless ssl_opts[:cert_chain_file].class == ssl_opts[:private_key_file].class
+    raise 'You must specify both the certificate and key file!'
+  end
+
+  PuppetValidator.run!(options) do |server|
+    if options[:ssl]
+      if server.respond_to? 'ssl='
+        logger.info 'Enabling SSL support.'
+        server.ssl         = true
+        server.ssl_options = ssl_opts
+      else
+        logger.warn "Please 'gem install thin' or run via an app server for SSL support."
+      end
+    end
+  end
 end
