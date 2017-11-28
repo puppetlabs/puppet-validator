@@ -149,7 +149,9 @@ function puppet_validator(cm, updateLinting, options) {
       $('#share').hide();
 
       if('line' in results) {
-        editor.scrollIntoView(results['line'] - 3, results['line'] + 3);
+        var min = Math.max(results['line'] - 3, 0);
+        var max = Math.min(results['line'] + 3, editor.lineCount());
+        editor.scrollIntoView(min, max);
       }
     }
 
