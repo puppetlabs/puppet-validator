@@ -83,11 +83,13 @@ class PuppetValidator < Sinatra::Base
 
     case uri.host
     when 'gist.github.com'
-      code = open("#{uri}/raw").read rescue nil
+      path = uri.path.end_with?('/raw') ? uri : "#{uri}/raw"
+
     when 'pastebin.com', 'hastebin.com'
-      code = open("#{uri.scheme}://#{uri.host}/raw#{uri.path}").read rescue nil
+      path = uri.path.start_with?('/raw') ? uri : "#{uri.scheme}://#{uri.host}/raw#{uri.path}"
+
     else
-      code = nil
+      path = nil
       logger.info "Unrecognized paste service: #{uri}"
     end
 
@@ -96,7 +98,10 @@ class PuppetValidator < Sinatra::Base
     # loads lint into global namespace, but I don't see an alternative
     @checks   = PuppetValidator::Validators::Lint.all_checks
     @location = location
-    @code     = sanitize_code(code)
+
+    if path
+      @code   = sanitize_code(open(path).read) rescue nil
+    end
 
     erb :index
   end
