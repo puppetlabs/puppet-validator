@@ -24,6 +24,9 @@ pre#highlighted {
     margin-right: 0.5em;
   }
 
+#location {
+  width: 60%;
+}
 
 .results,
 .warning {
