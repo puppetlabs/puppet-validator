@@ -75,6 +75,10 @@ class PuppetValidator < Sinatra::Base
     erb :index
   end
 
+  get '/load/referer' do
+    redirect "/load/#{request.referer}"
+  end
+
   get '/load/*' do
     location = params[:splat].first.sub(/(https?:)\/\/?/, '\1//')
     logger.info "Loading code from: #{location}"
@@ -99,10 +103,6 @@ class PuppetValidator < Sinatra::Base
     @code     = sanitize_code(code)
 
     erb :index
-  end
-
-  get '/referer' do
-    redirect "/load/#{request.referer}"
   end
 
   # The all-in-one blob that renders via an erb page
