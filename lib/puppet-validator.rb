@@ -83,10 +83,11 @@ class PuppetValidator < Sinatra::Base
 
     case uri.host
     when 'gist.github.com'
-      code = open("#{uri}/raw").read
+      code = open("#{uri}/raw").read rescue nil
     when 'pastebin.com', 'hastebin.com'
-      code = open("#{uri.scheme}://#{uri.host}/raw#{uri.path}").read
+      code = open("#{uri.scheme}://#{uri.host}/raw#{uri.path}").read rescue nil
     else
+      code = nil
       logger.info "Unrecognized paste service: #{uri}"
     end
 
