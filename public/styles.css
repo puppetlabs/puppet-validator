@@ -125,11 +125,11 @@ div.row {
   text-align: center;
 }
 
-.CodeMirror-line.CodeMirror-lint-mark-error {
-  background-color: #ffefed;
-}
 .CodeMirror-line.CodeMirror-lint-mark-warning {
   background-color: #fff9d2;
+}
+.CodeMirror-line.CodeMirror-lint-mark-error {
+  background-color: #ffefed;
 }
 
 input#validate,
