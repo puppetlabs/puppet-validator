@@ -1,11 +1,13 @@
 # Puppet Validator:
 ## Puppet Code Validation as a service
 
-Puppet Validator is a simple web service that accepts arbitrary code submissions and
-validates it the way `puppet parser validate` would. It can optionally also
-run `puppet-lint` checks on the code and display both results together.
+Puppet Validator is a simple web service that accepts arbitrary code submissions
+and validates it the way `puppet parser validate` and `puppet-lint` would. For
+simple and self-contained manifests, it can also show you a relationship graph.
 
 Puppet Validator is completely themeable, albeit rather primitively.
+
+See an example running on https://validate.puppet.com
 
 ### Usage:
 
@@ -22,25 +24,33 @@ and will serve content directly out of its installation directory. You can
 override and customize the web content by passing the `-t` or `--theme`
 command-line argument. See [Creating your own theme](#creating-your-own-theme) below.
 
+This can load code from several popular paste services and can gist validated
+code to https://gist.github.com. These gists include a `referer` link back so
+the gisted code can be re-validated at any time. If you'd like the `referer`
+check to work properly, make sure to run this with a valid SSL certificate.
+
 Options:
 
     -d, --debug                      Display or log debugging messages
-    -l, --logfile [LOGFILE]          Path to logfile. Defaults to no logging, or
-                                        /var/log/puppet-validator if no filename is passed.
+        --disable DISABLED_CHECKS    Lint checks to disable. Either comma-separated list or filename.
+    -l, --logfile [LOGFILE]          Path to logfile. Defaults to no logging, or /var/log/puppet-validator if no filename is passed.
     -p, --port PORT                  Port to listen on. Defaults to 9000.
     -t, --theme THEMEDIR             Path to the theme directory.
-    -x, --csrf                       Protect from cross site request forgery. Requires code to be
-                                        submitted for validation via the webpage.
-    -g, --graph                      Generate relationship graphs from validated code. Requires
-                                        `graphviz` to be installed.
-    
+    -x, --csrf                       Protect from cross site request forgery. Requires code to be submitted for validation via the webpage.
+    -g, --graph                      Generate relationship graphs from validated code. Requires `graphviz` to be installed.
+        --ssl                        Run with SSL support. Autogenerates a self-signed certificates by default.
+        --ssl-cert FILE              Specify the SSL certificate you'd like use use. Pair with --ssl-key.
+        --ssl-key FILE               Specify the SSL key file you'd like use use. Pair with --ssl-cert.
+
     -h, --help                       Displays this help
+
 
 #### Integrating with Middleware
 
 If you plan to run this as a public service, then you may want to run it under
-middleware, such as Phusion Passenger, for performance and scalability. The
-specific implementation will depend on your choice of webserver and middleware.
+middleware (such as Phusion Passenger, Puma, or Unicorn) for performance and
+scalability. The specific implementation will depend on your choice of webserver
+and middleware.
 
 To configure Puppet Validator on Apache and Passenger, you'll need to
 <a href="https://www.phusionpassenger.com/library/install/apache/install/oss/el7/">
@@ -81,7 +91,6 @@ require 'puppet-validator'
 logger       = Logger.new('/var/log/puppet-validator')
 logger.level = Logger::WARN
 
-PuppetValidator.set :puppet_versions, Dir.glob('*').select {|f| File.symlink? f and File.readlink(f) == '.' }
 PuppetValidator.set :root, File.dirname(__FILE__)
 PuppetValidator.set :logger, logger
 
@@ -93,7 +102,6 @@ PuppetValidator.set :disabled_lint_checks, ['80chars']
 # Protect from cross site request forgery. With this set, code may be
 #   submitted for validation by the website only.
 #
-# Note: This will currently break multiple version validation.
 PuppetValidator.set :csrf, false
 
 # Provide the option to generate relationship graphs from validated code.
@@ -114,17 +122,19 @@ command *will overwrite* existing files, but it will warn you before it does so.
     root@master:~ # cd /etc/puppet-validator/
     root@master:/etc/puppet-validator # puppet-validator init
     Initializing directory as new Puppet Validator theme...
-    root@master:/etc/puppet-validator # tree
+    root@master:/etc/puppet-validator # tree -L 2
     .
     ├── LICENSE
     ├── README.md
     ├── config.ru
     ├── public
-    │   ├── info.png
-    │   ├── prism-default.css
-    │   ├── prism.js
+    │   ├── font-awesome-4.7.0
+    │   ├── gist.png
+    │   ├── relationships.html
+    │   ├── scripts.js
     │   ├── styles.css
-    │   └── testing.html
+    │   ├── testing.html
+    │   └── validation.js
     └── views
         ├── index.erb
         └── result.erb
@@ -132,7 +142,7 @@ command *will overwrite* existing files, but it will warn you before it does so.
 Once you've created your theme, you can start the Puppet Validator service using the `-t`
 or `--theme` command line arguments to tell Puppet Validator where to find your content.
 
-    root@master:~ # puppet-validator -t /etc/puppet-validator/
+    root@master:~ # puppet-validator --theme /etc/puppet-validator/
 
 Alternatively, you can edit your webserver virtual host configuration to point
 to the *public* directory within your new theme, as in the example shown above.
@@ -171,93 +181,18 @@ PuppetValidator.set :disabled_lint_checks, '/etc/puppet-validator/disabled_check
 
 #### Validating code against multiple Puppet versions
 
-It is not very straightforward to load multiple versions of a library gem in Ruby.
-This makes it virtually impossible to validate multiple versions of the language
-directly in the tool. However, Passenger has allowed you to load different Ruby
-versions in different `Location` blocks since version 4.0 by loading separate
-threads for each.
+Puppet Validator runs a new process to validate each submission. This means that
+it can lazy-load the requested Puppet version on demand. Simply `gem install` all
+the versions you want and they'll be visible in the drop-down selector.
 
-We can take advantage of that by configuring multiple Ruby environments using `rvm`
-or `rbenv` and installing different gemsets. A simple Puppet module to do this
-is included in the repository, with the caveat that it was designed to fully own
-a single-purpose VM and has so far only been tested on CentOS 7.
+    # Installing a specific version
+    root@master:~ # gem install puppet -v 5.3.3
 
-If configuring manually, you'll need to create a gemset for each Puppet version
-you want to validate, with something like the following.
+    # Installing several versions at once
+    root@master:~ # gem install puppet:3.8.8 puppet:4.10.0 puppet:5.3.3
 
-    root@master:~ # rvm install ruby-1.9.3-p551
-    Searching for binary rubies, this might take some time.
-    [...]
-    root@master:~ # rvm use 1.9
-    Using /usr/local/rvm/gems/ruby-1.9.3-p551
-    root@master:~ # rvm gemset create puppet2.7.4
-    ruby-1.9.3-p551 - #gemset created /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4
-    ruby-1.9.3-p551 - #generating puppet2.7.4 wrappers........
-    root@master:~ # rvm gemset use puppet2.7.4
-    Using ruby-1.9.3-p551 with gemset puppet2.7.4
-    root@master:~ # gem install puppet -v 2.7.4
-    [...]
-    root@master:~ # gem install puppet-validator
-    [...]
-    root@master:~ # passenger-config --ruby-command
-    passenger-config was invoked through the following Ruby interpreter:
-      Command: /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby
-      Version: ruby 1.9.3p551 (2014-11-13 revision 48407) [x86_64-linux]
-      To use in Apache: PassengerRuby /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby
-      To use in Nginx : passenger_ruby /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby
-      To use with Standalone: /usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby /usr/bin/passenger start
-    
-    
-    ## Notes for RVM users
-    Do you want to know which command to use for a different Ruby interpreter? 'rvm use' that Ruby interpreter, then re-run 'passenger-config about ruby-command'.
-    
-Make a note of the `PassengerRuby` command for each gemset. You'll use it in the next step.
-
-You will need a `Location` block in your Apache `VirtualHost` for each versioned
-Puppet gemset you created above. The example file below shows blocks for three
-Puppet versions with the current version installed into the default directory.
-
-``` Apache
-<VirtualHost *:80>
-  ServerName vhost.example.com
-  DocumentRoot "/var/www/puppet-validator/public"
-
-  # The default root will validate against the current Puppet version
-  <Directory "/var/www/puppet-validator/public">
-    Options -MultiViews
-    AllowOverride All
-    Require all granted
-  </Directory>
-
-  Alias /2.7.4 /var/www/puppet-validator/2.7.4/public
-  <Location /2.7.4>
-    PassengerBaseURI /2.7.4
-    PassengerAppRoot /var/www/puppet-validator/2.7.4
-    PassengerRuby "/usr/local/rvm/gems/ruby-1.9.3-p551@puppet2.7.4/wrappers/ruby"
-  </Location>
-
-  Alias /3.6.2 /var/www/puppet-validator/3.6.2/public
-  <Location /3.6.2>
-    PassengerBaseURI /3.6.2
-    PassengerAppRoot /var/www/puppet-validator/3.6.2
-    PassengerRuby "/usr/local/rvm/gems/ruby-1.9.3-p551@puppet3.6.2/wrappers/ruby"
-  </Location>
-
-  ## Logging
-  ErrorLog "/var/log/httpd/vhost.example.com_error.log"
-  ServerSignature Off
-  CustomLog "/var/log/httpd/vhost.example.com_access.log" combined
-</VirtualHost>
-```
-
-There is one final trick. Passenger requires a unique filesystem location for its
-`AppRoot`. However, it will respect symlinks, so let's create one for each version:
-
-    root@master:~ # cd /var/www/puppet-validator
-    root@master:~ # ln -s . 2.7.4
-    root@master:~ # ln -s . 3.6.2
-
-Now restart Apache and you're all gravy.
+If you use the `puppet_validator` module, simply specify the versions you want
+as an array,
 
 #### Running standalone with `systemd`
 
