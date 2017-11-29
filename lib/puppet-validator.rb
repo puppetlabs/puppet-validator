@@ -253,10 +253,10 @@ class PuppetValidator < Sinatra::Base
       # initial highlighting for the potential syntax error
       if result[:line]
         line       = result[:line]
-        start      = [line - CONTEXT, 1].max
+        start      = [line - CONTEXT, 0].max
 
         result[:messages] << {
-            :from   => [line - CONTEXT, 0],
+            :from   => [start, 0],
               :to   => [line - 1, result[:column]],
           :message  => result[:message],
           :severity => 'error',
