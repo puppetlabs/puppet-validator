@@ -1,0 +1,9 @@
+--- syck_node_monkeypatch.rb.orig
++++ syck_node_monkeypatch.rb
+@@ -39,5 +39,6 @@
+ if defined?(YAML::Syck::Node)
+   YAML::Syck.module_eval monkeypatch
+ else
++  require 'syck'
+   Syck.module_eval monkeypatch
+ end
