@@ -86,7 +86,7 @@ class PuppetValidator < Sinatra::Base
     uri = location.downcase.start_with?('http') ? URI.parse(location) : URI.parse("https://#{location}")
 
     case uri.host
-    when 'gist.github.com'
+    when 'gist.github.com', 'paste.fedoraproject.org'
       path = uri.path.end_with?('/raw') ? uri : "#{uri}/raw"
 
     when 'pastebin.com', 'hastebin.com'
