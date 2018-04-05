@@ -32,9 +32,10 @@ class PuppetValidator::Validators::Lint
       linter.code = data
       linter.run
       linter.print_problems
+      linter.problems
     rescue => detail
       @logger.warn detail.message
-      nil
+      []
     end
   end
 
