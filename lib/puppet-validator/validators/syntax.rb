@@ -13,7 +13,7 @@ class PuppetValidator::Validators::Syntax
     require 'puppet/parser'
 
     Puppet.initialize_settings rescue nil
-    Puppet.settings[:app_management] = true if Gem::Version.new(Puppet.version) >= Gem::Version.new('4.3.2')
+    Puppet.settings[:app_management] = true if Puppet.settings.include? :app_management
 
     # set up the base environment
     Puppet.push_context(Puppet.base_context(Puppet.settings), 'Setup for Puppet Validator') rescue nil
