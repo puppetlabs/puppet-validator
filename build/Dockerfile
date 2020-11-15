@@ -7,6 +7,7 @@ RUN apk update \
         && gem install syck json thin puppet-validator --no-ri --no-rdoc                                                      \
         && gem install puppet:3.8.7 puppet:4.8.2 puppet:4.10.12 puppet:5.5.22 puppet:6.19.1 --no-ri --no-rdoc                 \
         && find / -name syck_node_monkeypatch.rb | xargs -I% sh -c 'cd $(dirname %); patch -p0 < /tmp/load_syck.patch'        \
+        && find / -name monkey_patches.rb | xargs -I% sh -c "sed -i 's/DEFAULT_PARAMS\[:ciphers\] <</#DEFAULT_PARAMS\[:ciphers\] <</' %;"        \
         && apk del --purge build-base                                                                                         \
         && apk del --purge libattr libacl xz-libs libarchive cmake gmp-dev ruby-dev zlib-dev musl-dev                         \
         && rm -rf `gem environment gemdir`/cache
