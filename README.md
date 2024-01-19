@@ -7,7 +7,8 @@ simple and self-contained manifests, it can also show you a relationship graph.
 
 Puppet Validator is completely themeable, albeit rather primitively.
 
-See an example running on https://validate.puppet.com
+An example site had been running on https://validate.puppet.com but is now in the process of being migrated to a new location.
+Follow the below instructions to run locally until this work takes place.
 
 ### Usage:
 
